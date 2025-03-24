@@ -1,26 +1,13 @@
 import pandas as pd
 
-#-----------------AZUL-------------------
+
+#-----------------BASICS ANALYSIS-------------------
 
 crime = pd.read_csv("Crime.csv", low_memory=False)
 crime = crime[crime["State"] == "MD"]
 print(crime.dtypes)
 
-# 1. Mode 
-mode_cr_number = crime['CR Number'].mode()[0]
-mode_victims = crime['Victims'].mode()[0]
-crime['Offence Code'] = pd.to_numeric(crime['Offence Code'], errors='coerce')
-mode_offence_code = crime['Offence Code'].mode()[0]
-
-print(f"Mode of Offence Code: {mode_offence_code}")
-print("\nMode of CR Number:", mode_cr_number)
-print("Mode of Victims:", mode_victims)
-
-# 2. Range 
-range_cr_number = crime['CR Number'].max() - crime['CR Number'].min()
 range_victims = crime['Victims'].max() - crime['Victims'].min()
-
-print("Range of CR Number:", range_cr_number)
 print("Range of Victims:", range_victims)
 
 # 3. Median 
@@ -32,17 +19,16 @@ print("Median of Victims:", median_victims)
 
 # 4. Mean 
 mean_victims = crime['Victims'].mean()
-
 print("\nMean of Victims:", mean_victims)
 
-# 5. Max
+# Max
 max_cr_number = crime['CR Number'].max()
 max_victims = crime['Victims'].max()
 
 print("Max of CR Number:", max_cr_number)
 print("Max of Victims:", max_victims)
 
-# 6. Min 
+# Min
 min_cr_number = crime['CR Number'].min()
 min_victims = crime['Victims'].min()
 
@@ -56,19 +42,14 @@ print("\nQuartiles of Victims:")
 print(quartiles_victims)
 
 
+#-------------------------COUNTS--------------------------
 
-#--------------------VERMELHO---------------------~
-
-#Crime Name 1
+# Crime Name 1
+print("---------------------")
+print("\n")
 count_crime1 = crime["Crime Name1"].value_counts()
 print(count_crime1)
 
-#Mode
-print("\n")
-print("Mode: ")
-mode_crime_name1 = count_crime1.idxmax()
-max_crime1_count = count_crime1.max()
-print(f"{mode_crime_name1}: {max_crime1_count}")
 
 # Crime Name 3
 print("---------------------")
@@ -76,29 +57,23 @@ print("\n")
 count_crime3 = crime["Crime Name3"].value_counts()
 print(count_crime3)
 
-#Mode
-print("\n")
-print("Mode: ")
-mode_crime_name3 = count_crime3.idxmax()
-max_crime3_count = count_crime3.max()
-print(f"{mode_crime_name3}: {max_crime3_count}")
-#print(count_crime3.max())
-
 # Police District Name
 print("---------------------")
 print("\n")
 count_police_district = crime["Police District Name"].value_counts()
 print(count_police_district)
 
-#Mode
+# City
+print("---------------------")
 print("\n")
-print("Mode: ")
-mode_police_district = count_police_district.idxmax()
-max_pdcount = count_police_district.max()
-print(f"{mode_police_district}: {max_pdcount}")
+count_city = crime["City"].value_counts()
+print(count_city)
 
-
-#----------------------ROXO-------------------------------
+# Zip Code
+print("---------------------")
+print("\n")
+count_zip_code = crime["Zip Code"].value_counts()
+print(count_zip_code)
 
 # Agency
 print("---------------------")
@@ -106,26 +81,11 @@ print("\n")
 count_agency = crime["Agency"].value_counts()
 print(count_agency)
 
-#Mode
-print("\n")
-print("Mode: ")
-mode_angency = count_agency.idxmax()
-max_agencycount = count_agency.max()
-print(f"{mode_angency}: {max_agencycount}")
-
 # Place
 print("---------------------")
 print("\n")
 count_place = crime["Place"].value_counts()
 print(count_place)
-
-#Mode
-print("\n")
-print("Mode: ")
-mode_place = count_place.idxmax()
-max_placecount = count_place.max()
-print(f"{mode_place}: {max_placecount}")
-
 
 # Street Type
 print("---------------------")
@@ -133,16 +93,67 @@ print("\n")
 count_strtype = crime["Street Type"].value_counts()
 print(count_strtype)
 
-#Mode
-print("\n")
-print("Mode: ")
-#mode_strtype = count_strtype.mode()
-mode_strtype = crime["Street Type"].mode()
-max_strtypecount = count_strtype.max()
-print(mode_strtype)
-print(f"{mode_strtype}: {max_strtypecount}")
 
-#print(crime["Beat"].nunique())
+#--------------------MODA---------------------
+
+#Calcular todas as modas
 print("All modes:")
 print(crime.mode().iloc[0])
 
+
+
+#-----------------VARIÂNCIA-------------------
+
+# Offence Code (se tirar dá erro)
+crime['Offence Code_encoded'] = pd.factorize(crime['Offence Code'])[0]
+
+# Offence Code
+variancia_offence = crime["Offence Code_encoded"].var()
+print("Variância Offence Code: ", variancia_offence)
+
+# Zip Code
+variancia_zip = crime["Zip Code"].var()
+print("Variância Zip Code: ", variancia_zip)
+
+# Victims
+variancia_victims = crime["Victims"].var()
+print("Variância Victims: ", variancia_victims)
+
+
+
+#--------------------COVARIÂNCIA------------------------
+
+crime['Police_District_code'] = pd.factorize(crime['Police District Name'])[0]
+crime['Crime_Name1_encoded'] = pd.factorize(crime['Crime Name1'])[0]
+crime['Zip_Code_code'] = pd.factorize(crime['Zip Code'])[0]
+crime['City_code'] = pd.factorize(crime['City'])[0]
+
+
+# Covariâncias para Victims
+covariance_victims_crime = crime['Victims'].cov(crime['Crime_Name1_encoded'])
+covariance_victims_police_district = crime['Victims'].cov(crime['Police_District_code'])
+covariance_victims_city = crime['Victims'].cov(crime['City_code'])
+covariance_victims_zip = crime['Victims'].cov(crime['Zip_Code_code'])
+
+# Covariâncias para Zip Code
+covariance_zip_crime = crime['Zip_Code_code'].cov(crime['Crime_Name1_encoded'])
+covariance_zip_police_district = crime['Zip_Code_code'].cov(crime['Police_District_code'])
+
+# Covariâncias para Crime Name 1
+covariance_crime_police_district = crime['Crime_Name1_encoded'].cov(crime['Police_District_code'])
+covariance_crime_city = crime['Crime_Name1_encoded'].cov(crime['City_code'])
+covariance_crime_zip = crime['Crime_Name1_encoded'].cov(crime['Zip_Code_code'])
+
+
+
+print("\nCovariância entre Victims e Crime Name 1:", covariance_victims_crime)
+print("Covariância entre Victims e Police District Name:", covariance_victims_police_district)
+print("Covariância entre Victims e City:", covariance_victims_city)
+print("Covariância entre Victims e Zip Code:", covariance_victims_zip)
+
+print("\nCovariância entre Zip Code e Crime Name 1:", covariance_zip_crime)
+print("Covariância entre Zip Code e Police District Name:", covariance_zip_police_district)
+
+print("\nCovariância entre Crime Name 1 e Police District Name:", covariance_crime_police_district)
+print("Covariância entre Crime Name 1 e City:", covariance_crime_city)
+print("Covariância entre Crime Name 1 e Zip Code:", covariance_crime_zip)
