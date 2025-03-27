@@ -148,11 +148,11 @@ if df is not None:
     # ---------------------------
     st.header("2. Statistical Analysis")
 
-    # Получаем список числовых столбцов
+
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     st.write("Numeric Columns:", numeric_cols)
 
-    # Основная статистика
+
     st.subheader("Basic Statistics")
     stats_df = pd.DataFrame({
         "Mean": df[numeric_cols].mean(),
@@ -164,19 +164,19 @@ if df is not None:
     })
     st.dataframe(stats_df)
 
-    # Матрицы ковариаций и корреляций
+
     st.subheader("Covariance Matrix")
     st.dataframe(df[numeric_cols].cov())
 
     st.subheader("Correlation Matrix")
     st.dataframe(df[numeric_cols].corr())
 
-    # Анализ квантилей
+
     st.subheader("Quantile Analysis")
     quantiles_df = df[numeric_cols].quantile([0.05, 0.25, 0.5, 0.75, 0.95])
     st.dataframe(quantiles_df)
 
-    # Анализ пропусков (Missing Values)
+
     st.subheader("Missing Values Analysis")
     missing_df = pd.DataFrame(df.isna().sum(), columns=["Missing Count"])
     missing_df["Missing Percentage"] = missing_df["Missing Count"] / df.shape[0] * 100
@@ -396,3 +396,37 @@ if df is not None:
     """)
 else:
     st.write("Failed to load the dataset. Please ensure that 'Crime Excel.xlsx' is in the working directory.")
+
+
+# Bar chart showing the number of incidents grouped by Zip Code
+df.groupby(["Zip Code"])["Incident ID"].count().plot(kind='bar', title="Crime by Zip Code")
+plt.show()
+
+# Bar chart showing the number of victims grouped by Crime Name
+df.groupby(["Crime Name1"])["Victims"].count().plot(kind='bar', title="Number of victims by Crime Name")
+plt.show()
+
+# Bar chart showing the top 10 crimes with the highest victim count
+df.groupby("Crime Name1")["Victims"].sum().sort_values(ascending=False).head(10).plot(kind='bar', title='Top Crimes by Victim Count')
+plt.show()
+
+# Bar chart showing the distribution of crimes by weekday
+df['Start_Date_Time'] = pd.to_datetime(df['Start_Date_Time'])
+df['Weekday'] = df['Start_Date_Time'].dt.day_name()
+crime_counts = df['Weekday'].value_counts().reindex(
+    ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+)
+plt.figure(figsize=(10, 5))
+sns.barplot(x=crime_counts.index, y=crime_counts.values, color="skyblue")
+plt.title("Crime Distribution by Weekday")
+plt.xlabel("Day of the Week")
+plt.ylabel("Number of Incidents")
+plt.show()
+
+# Bar chart showing the distribution of crime types
+df.groupby("Crime Name1")["Incident ID"].count().plot(kind='bar', title="Distribution of Crime Type")
+plt.show()
+
+# Stacked bar chart showing the distribution of crime types for each police district
+df.groupby(["Police District Name", "Crime Name1"]).size().unstack().plot(kind='bar', stacked=True, figsize=(12, 8), title="Crime Type Distribution for Each Police District")
+plt.show()
