@@ -5,16 +5,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import datetime
 
-# from sklearn.preprocessing import StandardScaler, MinMaxScaler
-# import scipy.stats as stats
-
-sns.set(style="whitegrid")
+sns.set(style='whitegrid')
 
 @st.cache_data
 def load_data():
     try:
         crime = pd.read_csv("Crime.csv")
-        crime = crime[crime["State"] == "MD"]
+        crime = crime[crime['State'] == "MD"]
     except Exception as e:
         st.error("Error loading dataset: " + str(e))
         return None
@@ -82,97 +79,99 @@ if crime is not None:
 
     st.header("2. Statistical Analysis")
 
-    st.write("All modes:")
-    # tentar mudar o nome das colunas para não estar vazio e 0
+    st.write("**Modes**")
+    # need to change the name of the columns so that it isn't empty and '0'
     st.write(crime.mode().iloc[0])
 
     st.write("**Victims analysis**")
 
-    # wrong
+    # wrong?
     range_victims = crime['Victims'].max() - crime['Victims'].min()
     st.write("Range of victims: ", range_victims)
 
-    # 3. Median
+    # Victims Median
     median_victims = crime['Victims'].median()
     st.write("Median of Victims:", median_victims)
 
-    # 4. Mean
+    # Victims Mean
     mean_victims = crime['Victims'].mean()
-    st.write("\nMean of Victims:", mean_victims)
+    st.write("Mean of Victims:", mean_victims)
 
-    # Max
+    # Victims Max
     max_victims = crime['Victims'].max()
-    st.write("Max of Victims:", max_victims)
+    st.write("Maximum number of Victims:", max_victims)
 
-    # Min
+    # Victims Min
     min_victims = crime['Victims'].min()
-    st.write("Min of Victims:", min_victims)
+    st.write("Minimum number of Victims:", min_victims)
 
-    # 7. Quartiles
+    # Victims Quartiles
     quartiles_victims = crime['Victims'].quantile([0.25, 0.5, 0.75])
-
-    st.write("\nQuartiles of Victims:")
+    st.write("Quartiles of Victims:")
     st.write(quartiles_victims)
 
     st.write("**CR Number Analysis**") # why?
 
+    # CR Number Median
     median_cr_number = crime['CR Number'].median()
     st.write("\nMedian of CR Number:", median_cr_number)
 
+    # CR Number Max
     max_cr_number = crime['CR Number'].max()
-    st.write("Max of CR Number:", max_cr_number)
+    st.write("Maximum number of CR Number:", max_cr_number)
 
+    # CR Number Min
     min_cr_number = crime['CR Number'].min()
-    st.write("Min of CR Number:", min_cr_number)
+    st.write("Minimum number of CR Number:", min_cr_number)
 
     # -------------------------COUNTS--------------------------
 
     st.write("---")
     st.write("**Value counts in each column**")
+    st.write("\n")
 
-    # Crime Name 1
-    st.write("---")
+    # Crime Name 1 Value Count
     st.write("**Crime Name 1**\n")
     count_crime1 = crime['Crime Name1'].value_counts()
     st.write(count_crime1)
 
-    # Crime Name 3
+    # Crime Name 3 Value Count
     st.write("---")
     st.write("**Crime Name 2**\n")
     count_crime3 = crime['Crime Name3'].value_counts()
     st.write(count_crime3)
 
-    # Police District Name
+    # Police District Name Value Count
     st.write("---")
     st.write("**Police District Name**\n")
     count_police_district = crime['Police District Name'].value_counts()
     st.write(count_police_district)
 
-    # City
+    # City Value Count
     st.write("---")
     st.write("**City**\n")
     count_city = crime['City'].value_counts()
     st.write(count_city)
 
-    # Zip Code
+    # Zip Code Value Count
     st.write("---")
     st.write("**Zip Code**\n")
     count_zip_code = crime['Zip Code'].value_counts()
     st.write(count_zip_code)
 
-    # Agency
+    # Agency Value Count
     st.write("---")
     st.write("**Agency**\n")
     count_agency = crime['Agency'].value_counts()
     st.write(count_agency)
 
-    # Place
+    # Place Value Count
     st.write("---")
     st.write("**Place**\n")
     count_place = crime['Place'].value_counts()
     st.write(count_place)
 
-    # Street Type
+    # Street Type Value Count
     st.write("---")
     st.write("**Street Type**\n")
     count_strtype = crime['Street Type'].value_counts()
@@ -186,15 +185,15 @@ if crime is not None:
     # Offence Code (se tirar dá erro)
     crime['Offence Code_encoded'] = pd.factorize(crime['Offence Code'])[0]
 
-    # Offence Code
+    # Offence Code Variance
     variance_offence = crime['Offence Code_encoded'].var()
     st.write("Variance Offence Code: ", variance_offence)
 
-    # Zip Code
+    # Zip Code Variance
     variance_zip = crime['Zip Code'].var()
     st.write("Variance Zip Code: ", variance_zip)
 
-    # Victims
+    # Victims Variance
     variance_victims = crime['Victims'].var()
     st.write("Variance Victims: ", variance_victims)
 
@@ -207,9 +206,9 @@ if crime is not None:
     crime['Zip_Code_code'] = pd.factorize(crime['Zip Code'])[0]
     crime['City_code'] = pd.factorize(crime['City'])[0]
 
-    # Covariances for Victims
-
-    st.write("\n*Victims Covariance*")
+    # Victims Covariance
+    st.write("\n")
+    st.write("*Victims Covariance*")
 
     covariance_victims_crime = crime['Victims'].cov(crime['Crime_Name1_encoded'])
     covariance_victims_police_district = crime['Victims'].cov(crime['Police_District_code'])
@@ -221,24 +220,24 @@ if crime is not None:
     st.write("Covariance between Victims and City:", covariance_victims_city)
     st.write("Covariance between Victims and Zip Code:", covariance_victims_zip)
 
-    # Covariances for Zip Code
-
-    st.write("\n*Zip Code Covariance*")
+    # Zip Code Covariance
+    st.write("\n")
+    st.write("*Zip Code Covariance*")
 
     covariance_zip_crime = crime['Zip_Code_code'].cov(crime['Crime_Name1_encoded'])
     covariance_zip_police_district = crime['Zip_Code_code'].cov(crime['Police_District_code'])
-    st.write("\nCovariance between Zip Code and Crime Name 1:", covariance_zip_crime)
+    st.write("Covariance between Zip Code and Crime Name 1:", covariance_zip_crime)
     st.write("Covariance between Zip Code and Police District Name:", covariance_zip_police_district)
 
-    # Covariances for Crime Name 1
-
-    st.write("\n*Crime Name 1 Covariance*")
+    # Crime Name 1 Covariance
+    st.write("\n")
+    st.write("*Crime Name 1 Covariance*")
 
     covariance_crime_police_district = crime['Crime_Name1_encoded'].cov(crime['Police_District_code'])
     covariance_crime_city = crime['Crime_Name1_encoded'].cov(crime['City_code'])
     covariance_crime_zip = crime['Crime_Name1_encoded'].cov(crime['Zip_Code_code'])
 
-    st.write("\nCovariance between Crime Name 1 and Police District Name:", covariance_crime_police_district)
+    st.write("Covariance between Crime Name 1 and Police District Name:", covariance_crime_police_district)
     st.write("Covariance between Crime Name 1 and City:", covariance_crime_city)
     st.write("Covariance between Crime Name 1 and Zip Code:", covariance_crime_zip)
 
@@ -246,7 +245,7 @@ if crime is not None:
     st.write("---")
     st.write("**Correlation**")
 
-    # entender o que vai para aqui
+    # Error - need to change and understand
 
     st.write("*Pearson Correlations between Victims and Offence Code*")
     # encoder = LabelEncoder()
@@ -327,6 +326,8 @@ if crime is not None:
     st.header("4. Graphical Analysis")
 
     # ----------------------GRAPH ANALYSIS---------------------------------
+
+    # It doesn't work with the pd.to_datetime above so it needs to be resolved
 
     # times = list(crime['Start_Date_Time'].values)
     # month = [int(t.split(' ')[0][0:2]) for t in times]
@@ -412,7 +413,8 @@ if crime is not None:
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
-    # este não aparece for some reason
+    # this one doesn't show up for some reason
+
     # 5. Crime Type Distribution for Each Police District (barras empilhadas)
     fig = plt.figure(figsize=(12, 8))
     crime_by_district = crime.groupby(['Police District Name', 'Crime Name1'])['Incident ID'].count().unstack()
@@ -435,7 +437,7 @@ if crime is not None:
     plt.tight_layout()
     st.pyplot(fig)
 
-    # ERRADO
+    # wrong?
     # 6. Most Committed Crime by City
     fig = plt.figure(figsize=(12, 6))
     sns.barplot(
@@ -502,7 +504,7 @@ if crime is not None:
     ax.set_xticks(angles)
     ax.set_xticklabels(categories, fontsize=10, ha='right')
 
-    # adding the average number of victims
+    # Adding the average number of victims
     for i, value in enumerate(values):
         ax.text(angles[i], value + 0.1, f'{value:.2f}', horizontalalignment='center', size=10, color='dodgerblue',
                 weight='semibold')
@@ -557,6 +559,7 @@ if crime is not None:
     # m_1 = folium.Map(location=[39.1377, -77.13593], tiles="openstreetmap", zoom_start=10)
     # HeatMap(data=crime[["Latitude", "Longitude"]], radius=10).add_to(m_1)
     # m_1.save("crimeArea.html")
+
 
     # ---------------------------
     # Sidebar Navigation for Quick Access
