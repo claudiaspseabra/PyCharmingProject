@@ -181,7 +181,7 @@ if crime is not None:
     count_strtype = crime['Street Type'].value_counts()
     st.write(count_strtype)
 
-    # -----------------VARIÂNCIA-------------------
+    # -----------------VARIANCE-------------------
 
     st.write("---")
     st.write("**Variance**")
