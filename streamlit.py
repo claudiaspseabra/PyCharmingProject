@@ -3,7 +3,9 @@ import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
-import datetime
+import folium
+from folium.plugins import HeatMap
+from streamlit_folium import st_folium
 
 sns.set(style='whitegrid')
 
@@ -17,13 +19,24 @@ def load_data():
         return None
     return crime
 
-# Load the dataset
 crime = load_data()
+
+# We need to choose between wide and centered
+st.set_page_config(layout="centered", page_title="Crime Data Analysis", page_icon="📊")
 
 st.title("Crime Data Analysis")
 
-st.header("Project Requirements")
-st.markdown("""**???**""")
+# Sidebar Navigation
+st.sidebar.title("Navigation")
+st.sidebar.markdown("""
+- [Dataset Description](#1-dataset-description)
+- [Statistical Analysis](#2-statistical-analysis)
+- [Advanced Feature Engineering](#3-advanced-feature-engineering)
+- [Graphical Analysis](#4-graphical-analysis)
+""")
+
+# st.header("Project Requirements")
+# st.markdown("""**???**""")
 
 if crime is not None:
 
@@ -36,54 +49,39 @@ if crime is not None:
     # st.write("**Sample of First 5 Rows:**")
     # st.dataframe(crime.head())
 
-    st.header("Feature Description Report")
+    st.subheader("Feature Description Report")
     st.markdown("""
     **Incident ID:** A unique identifier for each crime incident.
     Serves as the primary key for tracking individual records.
-
-    **Offence Code:** Code representing the specific offence committed, which helps classify and group incidents by offence type.
-
-    **CR Number:** Unique crime report number.  
-
-    **Dispatch Date / Time:** The date and time when the incident was dispatched.  
-
-    **NIBRS Code:** Crime classification code based on the National Incident-Based Reporting System.  
-
-    **Victims:** Number of victims involved in the incident.  
-
-    **Crime Name1:** Primary category or name of the crime.  
+    \n**Offence Code:** Code representing the specific offence committed, which helps classify and group incidents by offence type.
+    \n**CR Number:** Unique crime report number.  
+    \n**Dispatch Date / Time:** The date and time when the incident was dispatched.  
+    \n**NIBRS Code:** Crime classification code based on the National Incident-Based Reporting System.  
+    \n**Victims:** Number of victims involved in the incident.  
+    \n**Crime Name1:** Primary category or name of the crime.  
     Serves as the main label for crime type.
-
-    **Crime Name2:** Secondary crime category or descriptor. 
+    \n**Crime Name2:** Secondary crime category or descriptor. 
     Provides additional context for the incident.
-
-    **Crime Name3:** Tertiary crime category or additional detail.  
-
-    **Police District Name:** Name of the police district responsible for the incident.  
-
-    **Block Address:** Block address where the incident occurred.  
-
-    **City, State, Zip Code:** Location details of the incident.  
-
-    **Agency:** Law enforcement agency involved.  
-
-    **Place, Sector, Beat, PRA, Address Number, Street Prefix, Street Name, Street Suffix, Street Type:**  Detailed address and administrative information.  
-
-    **Start_Date_Time & End_Date_Time:** Incident start and end times.  
-
-    **Latitude & Longitude:** Geographical coordinates of the incident.  
-
-    **Police District Number, Location:** Additional location identifiers.  
+    \n**Crime Name3:** Tertiary crime category or additional detail.  
+    \n**Police District Name:** Name of the police district responsible for the incident.  
+    \n**Block Address:** Block address where the incident occurred.  
+    \n**City, State, Zip Code:** Location details of the incident.  
+    \n**Agency:** Law enforcement agency involved.  
+    \n**Place, Sector, Beat, PRA, Address Number, Street Prefix, Street Name, Street Suffix, Street Type:**  Detailed address and administrative information.  
+    \n**Start_Date_Time & End_Date_Time:** Incident start and end times.
+    \n**Latitude & Longitude:** Geographical coordinates of the incident.  
+    \n**Police District Number, Location:** Additional location identifiers.  
     """)
-
 
     st.header("2. Statistical Analysis")
 
     st.write("**Modes**")
-    # need to change the name of the columns so that it isn't empty and '0'
-    st.write(crime.mode().iloc[0])
+    modes = crime.mode().iloc[0]
+    st.dataframe(modes.reset_index().rename(columns={'index': 'Column', 0: 'Mode'}))
 
-    st.write("**Victims analysis**")
+    st.write("---")
+
+    st.subheader("**Victims analysis**")
 
     # wrong?
     range_victims = crime['Victims'].max() - crime['Victims'].min()
@@ -110,7 +108,13 @@ if crime is not None:
     st.write("Quartiles of Victims:")
     st.write(quartiles_victims)
 
-    st.write("**CR Number Analysis**") # why?
+    fig = plt.figure(figsize=(10, 6))
+    sns.histplot(crime['Victims'], kde=True, color='dodgerblue', bins=6)
+    plt.title("Distribution of Victims")
+    plt.xlim(0, 5)
+    st.pyplot(fig)
+
+    st.subheader("**CR Number Analysis**") # why?
 
     # CR Number Median
     median_cr_number = crime['CR Number'].median()
@@ -127,53 +131,53 @@ if crime is not None:
     # -------------------------COUNTS--------------------------
 
     st.write("---")
-    st.write("**Value counts in each column**")
+    st.subheader("**Value counts in each column**")
     st.write("\n")
 
     # Crime Name 1 Value Count
-    st.write("**Crime Name 1**\n")
+    st.write("**Crime Name 1**")
     count_crime1 = crime['Crime Name1'].value_counts()
     st.write(count_crime1)
 
     # Crime Name 3 Value Count
-    st.write("---")
-    st.write("**Crime Name 2**\n")
+    st.write("\n")
+    st.write("**Crime Name 2**")
     count_crime3 = crime['Crime Name3'].value_counts()
     st.write(count_crime3)
 
     # Police District Name Value Count
-    st.write("---")
-    st.write("**Police District Name**\n")
+    st.write("\n")
+    st.write("**Police District Name**")
     count_police_district = crime['Police District Name'].value_counts()
     st.write(count_police_district)
 
     # City Value Count
-    st.write("---")
-    st.write("**City**\n")
+    st.write("\n")
+    st.write("**City**")
     count_city = crime['City'].value_counts()
     st.write(count_city)
 
     # Zip Code Value Count
-    st.write("---")
-    st.write("**Zip Code**\n")
+    st.write("\n")
+    st.write("**Zip Code**")
     count_zip_code = crime['Zip Code'].value_counts()
     st.write(count_zip_code)
 
     # Agency Value Count
-    st.write("---")
-    st.write("**Agency**\n")
+    st.write("\n")
+    st.write("**Agency**")
     count_agency = crime['Agency'].value_counts()
     st.write(count_agency)
 
     # Place Value Count
-    st.write("---")
+    st.write("\n")
     st.write("**Place**\n")
     count_place = crime['Place'].value_counts()
     st.write(count_place)
 
     # Street Type Value Count
-    st.write("---")
-    st.write("**Street Type**\n")
+    st.write("\n")
+    st.write("**Street Type**")
     count_strtype = crime['Street Type'].value_counts()
     st.write(count_strtype)
 
@@ -182,11 +186,11 @@ if crime is not None:
     st.write("---")
     st.write("**Variance**")
 
-    # Offence Code (se tirar dá erro)
-    crime['Offence Code_encoded'] = pd.factorize(crime['Offence Code'])[0]
+    # Offence Code
+    crime['Offence Code Encoded'] = pd.factorize(crime['Offence Code'])[0]
 
     # Offence Code Variance
-    variance_offence = crime['Offence Code_encoded'].var()
+    variance_offence = crime['Offence Code Encoded'].var()
     st.write("Variance Offence Code: ", variance_offence)
 
     # Zip Code Variance
@@ -247,24 +251,22 @@ if crime is not None:
 
     # Error - need to change and understand
 
-    st.write("*Pearson Correlations between Victims and Offence Code*")
-    # encoder = LabelEncoder()
-    # crime['Offence Code'] = encoder.fit_transform(crime['Crime Name1'])
-    # correlation = crime[['Offence Code', 'Victims']].corr(method='pearson')
-    # print("Pearson correlation between Victims and Offense Code:\n", correlation)
+    st.write("*Pearson Correlation between Victims and Offence Code*")
+    correlation = crime[['Offence Code Encoded', 'Victims']].corr(method='pearson')
+    st.write(correlation)
 
-    st.write("*Pearson Correlations between Victims and Crime Name 1*")
-    # crime['CrimeCode'] = encoder.fit_transform(crime['Crime Name1'])
-    # correlation_vict_crimename = crime[['CrimeCode', 'Victims']].corr(method='pearson')
-    # print("Pearson correlation between Victims and Crime Name1:\n", correlation_vict_crimename)
+    st.write("*Pearson Correlation between Victims and Crime Name 1*")
+    correlation_vict_crimename = crime[['Crime_Name1_encoded', 'Victims']].corr(method='pearson')
+    st.write(correlation_vict_crimename)
 
-    st.write("*Pearson Correlations between Duration Crime and Crime Name1*")
-    # crime['Start_Date_Time'] = pd.to_datetime(crime['Start_Date_Time'], format="%m/%d/%Y %I:%M:%S %p")
-    # crime['End_Date_Time'] = pd.to_datetime(crime['End_Date_Time'], format="%m/%d/%Y %I:%M:%S %p")
-    # crime['crime_duration'] = (crime['End_Date_Time'] - crime['Start_Date_Time']).dt.total_seconds()
-    #
-    # correlation_duration_crimename = crime[['crime_duration', 'CrimeCode']].corr(method='pearson')
-    # print("Pearson correlation between Duration Crime and Crime Name1:\n", correlation_duration_crimename)
+    # not sure if this should stay here - crime duration is created ahead
+    st.write("*Pearson Correlation between Duration Crime and Crime Name1*")
+    crime['Start_Date_Time'] = pd.to_datetime(crime['Start_Date_Time'], format="%m/%d/%Y %I:%M:%S %p")
+    crime['End_Date_Time'] = pd.to_datetime(crime['End_Date_Time'], format="%m/%d/%Y %I:%M:%S %p")
+    crime['Crime Duration'] = (crime['End_Date_Time'] - crime['Start_Date_Time']).dt.total_seconds()
+
+    correlation_duration_crimename = crime[['Crime Duration', 'Crime_Name1_encoded']].corr(method='pearson')
+    st.write(correlation_duration_crimename)
 
     st.header("3. Advanced Feature Engineering")
 
@@ -323,36 +325,29 @@ if crime is not None:
     variance_response_time = crime['Response Time'].var()
     st.write("Response Time Variance: ", variance_response_time)
 
-    st.header("4. Graphical Analysis")
-
     # ----------------------GRAPH ANALYSIS---------------------------------
 
-    # It doesn't work with the pd.to_datetime above so it needs to be resolved
+    st.header("4. Graphical Analysis")
 
-    # times = list(crime['Start_Date_Time'].values)
-    # month = [int(t.split(' ')[0][0:2]) for t in times]
-    # day = [int(t.split(' ')[0][3:5]) for t in times]
-    # year = [int(t.split(' ')[0][6:]) for t in times]
-    # date = [t.split(' ')[0] for t in times]
-    #
-    # weekday = [datetime.datetime(int(year[i]), int(month[i]), int(day[i])).weekday() for i in range(len(year))]
-    # crime['Weekday'] = weekday
-    #
-    # hour = [int(t.split(' ')[1].split(':')[0]) for t in times]
-    # for i in range(len(times)):
-    #     if times[i].split(' ')[-1] == 'PM' and hour[i] != 12 and hour[i] != 0:
-    #         hour[i] = hour[i] + 12
-    #     elif times[i].split(' ')[-1] == 'AM' and hour[i] == 12:
-    #         hour[i] = 0
-    #
-    # crime['Hour'] = hour
-    # crime['Month'] = month
-    # crime['Year'] = year
-    # crime['Date'] = pd.to_datetime(date)
-    # crime = crime.sort_values(by='Date')
-    #
-    # sns.set_style("whitegrid")
-    #
+    crime['Year'] = crime['Start_Date_Time'].dt.year
+    crime['Month'] = crime['Start_Date_Time'].dt.month
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig = plt.figure(figsize=(10, 6))
+        crimeByYear = sns.countplot(data=crime, x='Year')
+        crimeByYear.set(ylabel='Crimes')
+        plt.title("Yearly Crime Distribution")
+        st.pyplot(fig)
+
+    with col2:
+        fig = plt.figure(figsize=(10, 6))
+        crimeByMonth = sns.countplot(data=crime, x='Month')
+        crimeByMonth.set(ylabel='Crimes')
+        plt.title("Monthly Crime Distribution")
+        st.pyplot(fig)
+
     # # 1. Yearly crime distribution
     # fig = plt.figure(figsize=(12, 10))
     # crimeByYear = sns.countplot(data=crime, x='Year')
@@ -366,21 +361,55 @@ if crime is not None:
     # crimeByMonth.set(ylabel='Crimes')
     # plt.title("Monthly crime distribution")
     # st.pyplot(fig)
-    #
-    # # 3. Monthly crime distribution by year
-    # fig = plt.figure(figsize=(12, 10))
+
+    fig = plt.figure(figsize=(10, 6))
+    crimeByMonth = sns.countplot(data=crime, x='Month')
+    crimeByMonth.set(ylabel='Crimes')
+    plt.title("Monthly Crime Distribution")
+    st.pyplot(fig)
+
+    # 3. Monthly crime distribution by year
     # crimeByMonthYear = [crime[crime['Year'] == year]['Month'].value_counts() for year in list(crime['Year'].unique())]
     # i = 0
-    # for c in crimeByMonthYear:
+    # for year in list(crime['Year'].unique()):
     #     year = 2016 + i
     #     crimeYear = crime[crime['Year'] == year]
     #
+    #     fig = plt.figure(figsize=(12, 10))
+    #
     #     crimeMonthYear = sns.countplot(data=crimeYear, x='Month')
     #     crimeMonthYear.set(ylabel='Crimes')
-    #     plt.title("Monthly crime in " + str(2016 + i))
-    #     plt.show()
+    #     plt.title(f"Monthly crime in {year}")
+    #
+    #     st.pyplot(fig)
+    #
     #     i += 1
-    # st.pyplot(fig)
+
+    crimeByMonthYear = [crime[crime['Year'] == year]['Month'].value_counts() for year in list(crime['Year'].unique())]
+
+    i = 0
+    for j in range(0, len(crime['Year'].unique()), 2):
+        col1, col2 = st.columns(2)
+        with col1:
+            year = 2016 + j
+            crimeYear = crime[crime['Year'] == year]
+
+            fig = plt.figure(figsize=(12, 10))
+            crimeMonthYear = sns.countplot(data=crimeYear, x='Month')
+            crimeMonthYear.set(ylabel='Crimes')
+            plt.title(f"Monthly crime in {year}")
+            st.pyplot(fig)
+
+        with col2:
+            if j + 1 < len(crime['Year'].unique()):
+                year = 2016 + j + 1
+                crimeYear = crime[crime['Year'] == year]
+
+                fig = plt.figure(figsize=(12, 10))
+                crimeMonthYear = sns.countplot(data=crimeYear, x='Month')
+                crimeMonthYear.set(ylabel='Crimes')
+                plt.title(f"Monthly crime in {year}")
+                st.pyplot(fig)
 
     # 4. Distribution of Crime Type
     crime_count = crime['Crime Name1'].value_counts()
@@ -405,7 +434,7 @@ if crime is not None:
     # 5. Crime Type Distribution for Each Police District
     crime_pivot = crime.pivot_table(index="Police District Name", columns='Crime Name1', aggfunc='size', fill_value=0)
 
-    fig = plt.figure(figsize=(12, 6))
+    fig = plt.figure(figsize=(10, 6))
     sns.heatmap(crime_pivot, cmap='Blues', annot=False, linewidths=0.5)
     plt.title("Crime Type Distribution for Each Police District")
     plt.xlabel("Crime Type")
@@ -416,12 +445,15 @@ if crime is not None:
     # this one doesn't show up for some reason
 
     # 5. Crime Type Distribution for Each Police District (barras empilhadas)
-    fig = plt.figure(figsize=(12, 8))
     crime_by_district = crime.groupby(['Police District Name', 'Crime Name1'])['Incident ID'].count().unstack()
+    # fig = plt.figure(figsize=(12, 8))
+
     crime_by_district.plot(kind='bar', stacked=True, figsize=(12, 8), colormap='Set3')
-    plt.title("Crime Type Distribution for Each Police District", fontsize=16)
-    plt.xlabel("Police District Name", fontsize=12)
-    plt.ylabel("Number of Incidents", fontsize=12)
+    fig = plt.figure(figsize=(12, 8))
+
+    plt.title("Crime Type Distribution for Each Police District")
+    plt.xlabel("Police District Name")
+    plt.ylabel("Number of Incidents")
     plt.xticks(rotation=45)
     plt.tight_layout()
     st.pyplot(fig)
@@ -556,21 +588,12 @@ if crime is not None:
     st.pyplot(fig)
 
     # 13. Heat map with longitude and latitude
-    # m_1 = folium.Map(location=[39.1377, -77.13593], tiles="openstreetmap", zoom_start=10)
-    # HeatMap(data=crime[["Latitude", "Longitude"]], radius=10).add_to(m_1)
-    # m_1.save("crimeArea.html")
+    m_1 = folium.Map(location=[39.1377, -77.13593], tiles="openstreetmap", zoom_start=10)
+    HeatMap(data=crime[["Latitude", "Longitude"]], radius=10).add_to(m_1)
+    st_folium(m_1, width=700)
 
-
-    # ---------------------------
-    # Sidebar Navigation for Quick Access
-    # ---------------------------
-    st.sidebar.title("Navigation")
-    st.sidebar.markdown("""
-    - [Project Requirements](#project-requirements)
-    - [Dataset Description](#1-dataset-description)
-    - [Statistical Analysis](#2-statistical-analysis)
-    - [Advanced Feature Engineering](#3-advanced-feature-engineering)
-    - [Graphical Analysis](#4-graphical-analysis)
-    """)
 else:
-    st.write("Failed to load the dataset. Please ensure that 'Crime Excel.xlsx' is in the working directory.")
+    st.write("Failed to load the dataset. Please ensure that 'Crime.csv' is in the working directory.")
+
+if st.button("Back to Top"):
+    st.experimental_rerun()
