@@ -9,58 +9,6 @@ import numpy as np
 from wordcloud import WordCloud
 
 
-# Definindo cores pastel mais escuras para melhor legibilidade
-darker_pastel_colors = [
-    '#779ECB',  # Azul pastel escuro
-    '#83A697',  # Verde pastel escuro
-    '#C1A68B',  # Marrom pastel escuro
-    '#9E7EB9',  # Roxo pastel escuro
-    '#B27C66',  # Terracota pastel escuro
-    '#6D98BA',  # Azul aço pastel escuro
-    '#8A9A5B',  # Verde oliva pastel escuro
-    '#A17C6B',  # Marrom rosado pastel escuro
-    '#9F90C5',  # Lavanda pastel escuro
-    '#A7817B',  # Rosé pastel escuro
-    '#6C8C9C',  # Azul petróleo pastel escuro
-    '#878D91',  # Cinza azulado pastel escuro
-    '#7A8470',  # Verde musgo pastel escuro
-    '#817F82',  # Cinza pastel escuro
-    '#8F8176',  # Taupe pastel escuro
-    '#6D7993',  # Azul ardósia pastel escuro
-    '#785964',  # Roxo acinzentado pastel escuro
-    '#856D8A',  # Violeta escuro pastel
-    '#7D9D9D',  # Teal pastel escuro
-    '#697268',  # Verde acizentado pastel escuro
-    '#9C7C86'   # Rosa escuro pastel
-]
-
-pastel_colors = [
-    '#BAE1FF',  # Azul claro pastel
-    '#B3DFDB',  # Verde-água pastel
-    '#D0F0C0',  # Verde claro pastel
-    '#F8D5A3',  # Amarelo pastel
-    '#FFE5B4',  # Pêssego pastel
-    '#D5E8D4',  # Verde pastel
-    '#C4D3F3',  # Azul-lavanda pastel
-    '#E6F2FF',  # Azul céu pastel
-    '#CCE5FF',  # Azul bebê pastel
-    '#DAE8FC',  # Azul acinzentado pastel
-    '#B0E3E6',  # Turquesa pastel
-    '#C8E6C9',  # Verde menta pastel
-    '#FFF2CC',  # Amarelo manteiga pastel
-    '#DCEDC8',  # Verde limão pastel
-    '#F0E68C',  # Caqui pastel
-    '#A9CCE3',  # Azul aço pastel
-    '#D1E9EA',  # Azul piscina pastel
-    '#E1F5FE',  # Azul gelo pastel
-    '#C5CAE9',  # Índigo pastel
-    '#DEEAEE',  # Azul grisalho pastel
-    '#B9D7EA'   # Azul celeste pastel
-]
-
-def get_alternating_pastel_color(index):
-    return darker_pastel_colors[index % len(darker_pastel_colors)]
-
 #-----------------BASICS ANALYSIS-------------------
 
 crime = pd.read_csv("Crime.csv", low_memory=False)
@@ -335,7 +283,7 @@ plt.xticks(rotation=45)
 plt.show()
 
 
-#----------------JENIFER-----------
+#----------------JENIFER--------------------
 
 # Number of Crimes by city
 plt.figure(figsize=(12, 6))
@@ -351,7 +299,6 @@ plt.ylabel("Number of Crimes")
 plt.title("Number of Crimes by city")
 plt.xticks(rotation=45, ha='right')
 plt.show()
-
 
 
 # Most Committed Crime by City
@@ -373,7 +320,6 @@ plt.grid(axis='x', linestyle='--', alpha=0.6)
 
 plt.tight_layout()
 plt.show()
-
 
 
 # Crime by Patrol Area (using frequency Polygon)
@@ -518,7 +464,7 @@ print("Pearson correlation between Duration Crime and Crime Name1:\n", correlati
 
 #------------EXPERIENCIAS-----------
 
-#1. Crime Type Over Time  (FUNCIONAAAAA. year é nova feature)
+#1. Crime Type Over Time
 
 crime["Year"] = crime["Start_Date_Time"].dt.year
 crime_by_year = crime.groupby(["Year", "Crime Name1"])["Incident ID"].count().unstack()
