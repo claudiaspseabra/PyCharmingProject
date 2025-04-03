@@ -6,7 +6,60 @@ from folium.plugins import HeatMap
 from scipy.stats import pearsonr
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+from wordcloud import WordCloud
 
+
+# Definindo cores pastel mais escuras para melhor legibilidade
+darker_pastel_colors = [
+    '#779ECB',  # Azul pastel escuro
+    '#83A697',  # Verde pastel escuro
+    '#C1A68B',  # Marrom pastel escuro
+    '#9E7EB9',  # Roxo pastel escuro
+    '#B27C66',  # Terracota pastel escuro
+    '#6D98BA',  # Azul aço pastel escuro
+    '#8A9A5B',  # Verde oliva pastel escuro
+    '#A17C6B',  # Marrom rosado pastel escuro
+    '#9F90C5',  # Lavanda pastel escuro
+    '#A7817B',  # Rosé pastel escuro
+    '#6C8C9C',  # Azul petróleo pastel escuro
+    '#878D91',  # Cinza azulado pastel escuro
+    '#7A8470',  # Verde musgo pastel escuro
+    '#817F82',  # Cinza pastel escuro
+    '#8F8176',  # Taupe pastel escuro
+    '#6D7993',  # Azul ardósia pastel escuro
+    '#785964',  # Roxo acinzentado pastel escuro
+    '#856D8A',  # Violeta escuro pastel
+    '#7D9D9D',  # Teal pastel escuro
+    '#697268',  # Verde acizentado pastel escuro
+    '#9C7C86'   # Rosa escuro pastel
+]
+
+pastel_colors = [
+    '#BAE1FF',  # Azul claro pastel
+    '#B3DFDB',  # Verde-água pastel
+    '#D0F0C0',  # Verde claro pastel
+    '#F8D5A3',  # Amarelo pastel
+    '#FFE5B4',  # Pêssego pastel
+    '#D5E8D4',  # Verde pastel
+    '#C4D3F3',  # Azul-lavanda pastel
+    '#E6F2FF',  # Azul céu pastel
+    '#CCE5FF',  # Azul bebê pastel
+    '#DAE8FC',  # Azul acinzentado pastel
+    '#B0E3E6',  # Turquesa pastel
+    '#C8E6C9',  # Verde menta pastel
+    '#FFF2CC',  # Amarelo manteiga pastel
+    '#DCEDC8',  # Verde limão pastel
+    '#F0E68C',  # Caqui pastel
+    '#A9CCE3',  # Azul aço pastel
+    '#D1E9EA',  # Azul piscina pastel
+    '#E1F5FE',  # Azul gelo pastel
+    '#C5CAE9',  # Índigo pastel
+    '#DEEAEE',  # Azul grisalho pastel
+    '#B9D7EA'   # Azul celeste pastel
+]
+
+def get_alternating_pastel_color(index):
+    return darker_pastel_colors[index % len(darker_pastel_colors)]
 
 #-----------------BASICS ANALYSIS-------------------
 
@@ -17,14 +70,14 @@ print(crime.dtypes)
 range_victims = crime['Victims'].max() - crime['Victims'].min()
 print("Range of Victims:", range_victims)
 
-# 3. Median 
+# 3. Median
 median_cr_number = crime['CR Number'].median()
 median_victims = crime['Victims'].median()
 
 print("\nMedian of CR Number:", median_cr_number)
 print("Median of Victims:", median_victims)
 
-# 4. Mean 
+# 4. Mean
 mean_victims = crime['Victims'].mean()
 print("\nMean of Victims:", mean_victims)
 
@@ -48,7 +101,6 @@ quartiles_victims = crime['Victims'].quantile([0.25, 0.5, 0.75])
 print("\nQuartiles of Victims:")
 print(quartiles_victims)
 
-
 #-------------------------COUNTS--------------------------
 
 # Crime Name 1
@@ -57,6 +109,11 @@ print("\n")
 count_crime1 = crime["Crime Name1"].value_counts()
 print(count_crime1)
 
+# Crime Name 2
+print("---------------------")
+print("\n")
+count_crime3 = crime["Crime Name2"].value_counts()
+print(count_crime3)
 
 # Crime Name 3
 print("---------------------")
@@ -100,14 +157,11 @@ print("\n")
 count_strtype = crime["Street Type"].value_counts()
 print(count_strtype)
 
-
 #--------------------MODA---------------------
 
 #Calcular todas as modas
 print("All modes:")
 print(crime.mode().iloc[0])
-
-
 
 #-----------------VARIÂNCIA-------------------
 
@@ -126,15 +180,12 @@ print("Variance Zip Code: ", variancia_zip)
 variancia_victims = crime["Victims"].var()
 print("Variance Victims: ", variancia_victims)
 
-
-
 #--------------------COVARIANCE------------------------
 
 crime['Police_District_code'] = pd.factorize(crime['Police District Name'])[0]
 crime['Crime_Name1_encoded'] = pd.factorize(crime['Crime Name1'])[0]
 crime['Zip_Code_code'] = pd.factorize(crime['Zip Code'])[0]
 crime['City_code'] = pd.factorize(crime['City'])[0]
-
 
 # Covariances for Victims
 covariance_victims_crime = crime['Victims'].cov(crime['Crime_Name1_encoded'])
@@ -151,7 +202,6 @@ covariance_crime_police_district = crime['Crime_Name1_encoded'].cov(crime['Polic
 covariance_crime_city = crime['Crime_Name1_encoded'].cov(crime['City_code'])
 covariance_crime_zip = crime['Crime_Name1_encoded'].cov(crime['Zip_Code_code'])
 
-
 print("\nCovariance between Victims and Crime Name 1:", covariance_victims_crime)
 print("Covariance between Victims and Police District Name:", covariance_victims_police_district)
 print("Covariance between Victims and City:", covariance_victims_city)
@@ -164,10 +214,7 @@ print("\nCovariance between Crime Name 1 and Police District Name:", covariance_
 print("Covariance between Crime Name 1 and City:", covariance_crime_city)
 print("Covariance between Crime Name 1 and Zip Code:", covariance_crime_zip)
 
-
-
 #----------------------GRAPH ANALYSIS---------------------------------
-
 
 #------------------------JULIA-----------------------
 
@@ -189,7 +236,6 @@ plt.show()
 avg_victims_per_crime = crime.groupby("Crime Name1")["Victims"].mean().sort_values(ascending=False)
 categories = avg_victims_per_crime.index
 values = avg_victims_per_crime.values
-
 
 N = len(categories)
 angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
@@ -224,16 +270,16 @@ plt.show()
 #----------------------------Joana---------------------
 
 # Gráfico 1: Distribuição do Tipo de Crime
-crime_count = crime['Crime Name1'].value_counts()
-plt.figure(figsize=(10, 6))
-crime_count.plot(kind='barh', color=sns.color_palette("Set2", len(crime_count)))
-plt.title('Crime Type Distribution', fontsize=16)
-plt.xlabel('Number of Incidents', fontsize=12)
-plt.ylabel('Crime Type', fontsize=12)
-plt.tight_layout()
-plt.show()
+#crime_count = crime['Crime Name1'].value_counts()
+#plt.figure(figsize=(10, 6))
+#crime_count.plot(kind='barh', color=sns.color_palette("Set2", len(crime_count)))
+#plt.title('Crime Type Distribution', fontsize=16)
+#plt.xlabel('Number of Incidents', fontsize=12)
+#plt.ylabel('Crime Type', fontsize=12)
+#plt.tight_layout()
+#plt.show()
 
-# Gráfico 2: Crime Type Distribution for Each Police District (barras empilhadas)
+# Gráfico 2: Crime Type Distribution for Each Police District (barras empilhadas
 crime_by_district = crime.groupby(['Police District Name', 'Crime Name1'])['Incident ID'].count().unstack()
 crime_by_district.plot(kind='bar', stacked=True, figsize=(12, 8), colormap='Set3')
 plt.title('Crime Type Distribution for Each Police District', fontsize=16)
@@ -243,15 +289,27 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-# Gráfico 3: Most Committed Crime (barra vertical)
-most_committed_crime = crime['Crime Name1'].value_counts().head(1)
-plt.figure(figsize=(8, 6))
-most_committed_crime.plot(kind='bar', color='tomato')
-plt.title('Most Committed Crime', fontsize=16)
-plt.xlabel('Crime Type', fontsize=12)
-plt.ylabel('Number of Incidents', fontsize=12)
-plt.tight_layout()
+
+# Gráfico 3: Most Committed Crime (Gráfico Nuvem)
+most_committed_crimes = crime['Crime Name1'].value_counts().head(3)
+
+dark_pastel_colors = ['#D1A1D1', '#A0A1D1', '#A1D1B0', '#D1D1A1', '#A1D1D1']
+
+wordcloud = WordCloud(
+    width=800,
+    height=400,
+    background_color='white',
+    colormap='cividis',
+    relative_scaling=0.5
+).generate_from_frequencies(most_committed_crimes.to_dict())
+
+
+plt.figure(figsize=(10, 6))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')  # Desliga os eixos
+plt.title('Most Committed Crimes (Top 3)', fontsize=16)
 plt.show()
+
 
 
 #Distribution of Crime Type (each value in Crime Name1)
@@ -279,7 +337,7 @@ plt.show()
 
 #----------------JENIFER-----------
 
-# Most Committed Crime by City
+# Number of Crimes by city
 plt.figure(figsize=(12, 6))
 sns.barplot(
     x=crime["City"].value_counts().index,
@@ -290,8 +348,30 @@ sns.barplot(
 )
 plt.xlabel("City")
 plt.ylabel("Number of Crimes")
-plt.title("Most Committed Crime by City")
+plt.title("Number of Crimes by city")
 plt.xticks(rotation=45, ha='right')
+plt.show()
+
+
+
+# Most Committed Crime by City
+crime_city_top = crime.groupby('City')['Crime Name1'].agg(lambda x: x.value_counts().idxmax()).reset_index()
+
+crime_counts = crime.groupby(['City', 'Crime Name1']).size().reset_index(name='Crime Count')
+
+crime_city_top = crime_city_top.merge(crime_counts, on=['City', 'Crime Name1'])
+crime_city_top = crime_city_top.sort_values(by='Crime Count', ascending=True)
+
+plt.figure(figsize=(12, 8))
+sns.barplot(y='City', x='Crime Count', hue='Crime Name1', data=crime_city_top)
+
+plt.title('Most common crime by city', fontsize=16)
+plt.xlabel('number of ocorrencies', fontsize=12)
+plt.ylabel('City', fontsize=12)
+plt.legend(title="Most common crime", bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.grid(axis='x', linestyle='--', alpha=0.6)
+
+plt.tight_layout()
 plt.show()
 
 
@@ -410,6 +490,7 @@ HeatMap(data=crime[["Latitude", "Longitude"]], radius=10).add_to(m_1)
 m_1.save("crimeArea.html")
 
 
+
 #----------------ERNESTAS-----------------------
 
 # Pearson Correlations between Victims and Offence Code
@@ -433,3 +514,98 @@ crime["crime_duration"] = (crime["End_Date_Time"] - crime["Start_Date_Time"]).dt
 correlation_duration_crimename = crime[['crime_duration', 'CrimeCode']].corr(method='pearson')
 print("Pearson correlation between Duration Crime and Crime Name1:\n", correlation_duration_crimename)
 
+
+
+#------------EXPERIENCIAS-----------
+
+#1. Crime Type Over Time  (FUNCIONAAAAA. year é nova feature)
+
+crime["Year"] = crime["Start_Date_Time"].dt.year
+crime_by_year = crime.groupby(["Year", "Crime Name1"])["Incident ID"].count().unstack()
+
+crime_by_year.plot(kind='line', figsize=(12, 8), marker='o')
+plt.title('Crime Type Distribution Over Time', fontsize=16)
+plt.xlabel('Year', fontsize=14)
+plt.ylabel('Number of Incidents', fontsize=14)
+plt.xticks(rotation=45)
+plt.legend(title="Crime Type", bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
+plt.show()
+
+
+
+#2. Crime Time of Day Distribution (gráfico de dispersão)
+crime["Hour"] = crime["Start_Date_Time"].dt.hour
+crime_by_hour = crime.groupby("Hour")["Incident ID"].count()
+
+plt.figure(figsize=(12, 8))
+sns.set_style("whitegrid")
+sns.scatterplot(x=crime_by_hour.index, y=crime_by_hour, color='#1D3557', s=100, marker='D')
+
+plt.title('Crime Incidents by Hour of the Day', fontsize=16, fontweight='bold')
+plt.xlabel('Hour of the Day', fontsize=14)
+plt.ylabel('Number of Crimes', fontsize=14)
+plt.tight_layout()
+plt.show()
+
+
+
+#5. Comparing Response Time Across Different Crime Types
+crime_response_time_by_type = crime.groupby('Crime Name1')['Response_Time'].mean().sort_values(ascending=False)
+
+crime_response_time_by_type.plot(kind='barh', figsize=(12, 8), color='#A8DADC')
+plt.title('Average Police Response Time by Crime Type', fontsize=16)
+plt.xlabel('Average Response Time (seconds)', fontsize=14)
+plt.ylabel('Crime Type', fontsize=14)
+plt.tight_layout()
+plt.show()
+
+
+#-----------CRIME NAMES-----------
+
+
+# crime mais cometido (crimeName2) por CrimeName1*
+
+crime.columns = crime.columns.str.strip()
+
+crime_grouped = crime.groupby(['Crime Name1', 'Crime Name2']).size().reset_index(name='count')
+
+crime_types = crime_grouped['Crime Name1'].unique()
+
+for crime_type in crime_types:
+    filtered_data = crime_grouped[crime_grouped['Crime Name1'] == crime_type]
+    filtered_data = filtered_data.sort_values(by='count', ascending=False)
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(filtered_data['Crime Name2'], filtered_data['count'], color='lightcoral')
+
+    plt.xlabel('Subtipo de Crime (Crime Name 2)', fontsize=12)
+    plt.ylabel('Número de Ocorrências', fontsize=12)
+    plt.title(f'Número de Ocorrências de {crime_type} por Subtipo', fontsize=14)
+
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+# crime mais cometido (crimeName«3) por CrimeName2*
+    crime.columns = crime.columns.str.strip()
+
+    crime_grouped = crime.groupby(['Crime Name2', 'Crime Name3']).size().reset_index(name='count')
+
+    crime_types = crime_grouped['Crime Name2'].unique()
+
+    for crime_type in crime_types:
+        filtered_data = crime_grouped[crime_grouped['Crime Name2'] == crime_type]
+
+        filtered_data = filtered_data.sort_values(by='count', ascending=False)
+
+        plt.figure(figsize=(10, 6))
+        plt.bar(filtered_data['Crime Name3'], filtered_data['count'], color='lightseagreen')
+
+        plt.xlabel('Subtipo de Crime (Crime Name 3)', fontsize=12)
+        plt.ylabel('Número de Ocorrências', fontsize=12)
+        plt.title(f'Número de Ocorrências de {crime_type} por Subtipo (Crime Name 3)', fontsize=14)
+
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+        plt.show()
