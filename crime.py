@@ -187,17 +187,18 @@ values = avg_victims_per_crime.values
 
 N = len(categories)
 angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+angles += angles[:1]
+values_closed = np.append(values, values[0])
 
 # Create the radar graph
 fig, ax = plt.subplots(figsize=(8, 8), dpi=120, subplot_kw=dict(polar=True))
-ax.fill(angles, values, color='dodgerblue', alpha=0.25)
-ax.plot(angles, values, color='dodgerblue', linewidth=2)
+ax.fill(angles, values_closed, color='dodgerblue', alpha=0.25)
+ax.plot(angles, values_closed, color='dodgerblue', linewidth=2)
 
 ax.set_yticklabels([])
-ax.set_xticks(angles)
+ax.set_xticks(angles[:-1])
 ax.set_xticklabels(categories, fontsize=10, ha='right')
 
-#adding the average number of victims
 for i, value in enumerate(values):
     ax.text(angles[i], value + 0.1, f'{value:.2f}', horizontalalignment='center', size=10, color='dodgerblue', weight='semibold')
 
@@ -228,20 +229,18 @@ plt.show()
 #plt.show()
 
 # Gráfico 2: Crime Type Distribution for Each Police District (barras empilhadas
-crime_by_district = crime.groupby(['Police District Name', 'Crime Name1'])['Incident ID'].count().unstack()
-crime_by_district.plot(kind='bar', stacked=True, figsize=(12, 8), colormap='Set3')
-plt.title('Crime Type Distribution for Each Police District', fontsize=16)
-plt.xlabel('Police District Name', fontsize=12)
-plt.ylabel('Number of Incidents', fontsize=12)
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+#crime_by_district = crime.groupby(['Police District Name', 'Crime Name1'])['Incident ID'].count().unstack()
+#crime_by_district.plot(kind='bar', stacked=True, figsize=(12, 8), colormap='Set3')
+#plt.title('Crime Type Distribution for Each Police District', fontsize=16)
+#plt.xlabel('Police District Name', fontsize=12)
+#plt.ylabel('Number of Incidents', fontsize=12)
+#plt.xticks(rotation=45)
+#plt.tight_layout()
+#plt.show()
 
 
 # Gráfico 3: Most Committed Crime (Gráfico Nuvem)
 most_committed_crimes = crime['Crime Name1'].value_counts().head(3)
-
-dark_pastel_colors = ['#D1A1D1', '#A0A1D1', '#A1D1B0', '#D1D1A1', '#A1D1D1']
 
 wordcloud = WordCloud(
     width=800,
@@ -257,7 +256,6 @@ plt.imshow(wordcloud, interpolation='bilinear')
 plt.axis('off')  # Desliga os eixos
 plt.title('Most Committed Crimes (Top 3)', fontsize=16)
 plt.show()
-
 
 
 #Distribution of Crime Type (each value in Crime Name1)
@@ -285,6 +283,7 @@ plt.show()
 
 #----------------JENIFER--------------------
 
+#ESTE
 # Number of Crimes by city
 plt.figure(figsize=(12, 6))
 sns.barplot(
@@ -299,6 +298,26 @@ plt.ylabel("Number of Crimes")
 plt.title("Number of Crimes by city")
 plt.xticks(rotation=45, ha='right')
 plt.show()
+
+#OU ESTE (MOSTRA AS 5 CIDADES COM MAIS CRIMES, PARA FICAR MAIS LEGÍVEL)
+city_counts = crime["City"].value_counts()
+
+top_5 = city_counts.head(5)
+colors = plt.cm.coolwarm(np.linspace(0, 1, len(top_5)))
+
+plt.figure(figsize=(8, 8))
+wedges, texts, autotexts = plt.pie(
+    top_5.values,
+    labels=top_5.index,
+    autopct=lambda p: f'{int(p * sum(top_5.values) / 100)}',
+    colors=colors,
+    startangle=90,
+    wedgeprops={'width': 0.4}
+)
+
+plt.title("Top 5 Cities with Most Crimes")
+plt.show()
+
 
 
 # Most Committed Crime by City
@@ -464,7 +483,7 @@ print("Pearson correlation between Duration Crime and Crime Name1:\n", correlati
 
 #------------EXPERIENCIAS-----------
 
-#1. Crime Type Over Time
+#1. Crime Type Over The Years
 
 crime["Year"] = crime["Start_Date_Time"].dt.year
 crime_by_year = crime.groupby(["Year", "Crime Name1"])["Incident ID"].count().unstack()
@@ -477,7 +496,6 @@ plt.xticks(rotation=45)
 plt.legend(title="Crime Type", bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 plt.show()
-
 
 
 #2. Crime Time of Day Distribution (gráfico de dispersão)
@@ -495,6 +513,32 @@ plt.tight_layout()
 plt.show()
 
 
+#CRIME AGAINST PROPERTY A QUE HORAS OCORRE MAIS FREQUENTEMENTE
+crime["Hour"] = crime["Start_Date_Time"].dt.hour
+
+property_crimes = crime[crime["Crime Name1"] == "Crime Against Property"]
+
+# Contar os crimes por hora
+property_crimes_by_hour = property_crimes.groupby("Hour")["Incident ID"].count()
+
+# Gráfico de dispersão
+#plt.figure(figsize=(12, 8))
+#sns.set_style("whitegrid")
+#sns.scatterplot(
+ #   x=property_crimes_by_hour.index,
+ #   y=property_crimes_by_hour.values,
+ #   color='#E63946',  # podes trocar a cor se quiseres
+ #   s=100,
+ #   marker='D'
+#)
+
+#plt.title('Crime Against Property by Hour of the Day', fontsize=16, fontweight='bold')
+#plt.xlabel('Hour of the Day', fontsize=14)
+#plt.ylabel('Number of Crimes', fontsize=14)
+#plt.tight_layout()
+#plt.show()
+
+
 
 #5. Comparing Response Time Across Different Crime Types
 crime_response_time_by_type = crime.groupby('Crime Name1')['Response_Time'].mean().sort_values(ascending=False)
@@ -507,51 +551,92 @@ plt.tight_layout()
 plt.show()
 
 
-#-----------CRIME NAMES-----------
 
+#-----------CRIME NAMES-----------
 
 # crime mais cometido (crimeName2) por CrimeName1*
 
-crime.columns = crime.columns.str.strip()
+top_main_types = crime["Crime Name1"].value_counts().head(3).index
+filtered_crime = crime[crime["Crime Name1"].isin(top_main_types)]
 
-crime_grouped = crime.groupby(['Crime Name1', 'Crime Name2']).size().reset_index(name='count')
+grouped = filtered_crime.groupby(["Crime Name1", "Crime Name2"]).size().unstack(fill_value=0)
 
-crime_types = crime_grouped['Crime Name1'].unique()
+top_subtypes = grouped.sum(axis=0).sort_values(ascending=False).head(5).index
+grouped = grouped[top_subtypes]
 
-for crime_type in crime_types:
-    filtered_data = crime_grouped[crime_grouped['Crime Name1'] == crime_type]
-    filtered_data = filtered_data.sort_values(by='count', ascending=False)
+grouped.plot(kind='bar', stacked=True, figsize=(12, 8), colormap='tab20')
 
-    plt.figure(figsize=(10, 6))
-    plt.bar(filtered_data['Crime Name2'], filtered_data['count'], color='lightcoral')
+plt.title("Top 5 Subtypes (Crime Name2) in Top 3 Crime Categories (Crime Name1)", fontsize=14, fontweight='bold')
+plt.xlabel("Main Crime Type (Crime Name1)")
+plt.ylabel("Number of Crimes")
+plt.legend(title="Subtype (Crime Name2)")
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()
 
-    plt.xlabel('Subtipo de Crime (Crime Name 2)', fontsize=12)
-    plt.ylabel('Número de Ocorrências', fontsize=12)
-    plt.title(f'Número de Ocorrências de {crime_type} por Subtipo', fontsize=14)
 
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
-    plt.show()
 
-# crime mais cometido (crimeName«3) por CrimeName2*
-    crime.columns = crime.columns.str.strip()
+## crime mais cometido (crimeName3) por CrimeName2*
 
-    crime_grouped = crime.groupby(['Crime Name2', 'Crime Name3']).size().reset_index(name='count')
+top_subtypes2 = crime["Crime Name2"].value_counts().head(3).index
+filtered_crime2 = crime[crime["Crime Name2"].isin(top_subtypes2)]
 
-    crime_types = crime_grouped['Crime Name2'].unique()
+grouped2 = filtered_crime2.groupby(["Crime Name2", "Crime Name3"]).size().unstack(fill_value=0)
 
-    for crime_type in crime_types:
-        filtered_data = crime_grouped[crime_grouped['Crime Name2'] == crime_type]
+top_name3 = grouped2.sum(axis=0).sort_values(ascending=False).head(5).index
+grouped2 = grouped2[top_name3]
 
-        filtered_data = filtered_data.sort_values(by='count', ascending=False)
+grouped2.plot(kind='bar', stacked=True, figsize=(12, 8), colormap='Accent')
 
-        plt.figure(figsize=(10, 6))
-        plt.bar(filtered_data['Crime Name3'], filtered_data['count'], color='lightseagreen')
+plt.title("Top 5 Crime Name3 in Top 3 Crime Name2", fontsize=14, fontweight='bold')
+plt.xlabel("Crime Subtype (Crime Name2)")
+plt.ylabel("Number of Crimes")
+plt.legend(title="Crime Detail (Crime Name3)")
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()
 
-        plt.xlabel('Subtipo de Crime (Crime Name 3)', fontsize=12)
-        plt.ylabel('Número de Ocorrências', fontsize=12)
-        plt.title(f'Número de Ocorrências de {crime_type} por Subtipo (Crime Name 3)', fontsize=14)
 
-        plt.xticks(rotation=45, ha='right')
-        plt.tight_layout()
-        plt.show()
+
+
+# HORAS MAIS FREQUENTES DO CRIME NAME1
+
+crime["Start_Date_Time"] = pd.to_datetime(crime["Start_Date_Time"])
+crime["Hour"] = crime["Start_Date_Time"].dt.hour
+
+def get_period(hour):
+    if 6 <= hour < 12:
+        return "Morning (6-11)"
+    elif 12 <= hour < 18:
+        return "Afternoon (12-17)"
+    else:
+        return "Night (18-5)"
+
+crime["Period"] = crime["Hour"].apply(get_period)
+
+top_main_types = crime["Crime Name1"].value_counts().head(3).index
+filtered_crime = crime[crime["Crime Name1"].isin(top_main_types)]
+crime_period_distribution = filtered_crime.groupby(["Crime Name1", "Period"]).size().unstack(fill_value=0)
+
+period_order = ["Morning (6-11)", "Afternoon (12-17)", "Night (18-5)"]
+crime_period_distribution = crime_period_distribution[period_order]
+
+colors = {'Morning (6-11)': 'gold', 'Afternoon (12-17)': 'orangered', 'Night (18-5)': 'darkblue'}
+color_list = [colors[period] for period in crime_period_distribution.columns]
+
+plt.figure(figsize=(12, 8))
+crime_period_distribution.plot(
+    kind='bar',
+    figsize=(12, 8),
+    width=0.8,
+    color=color_list,
+    edgecolor='black'
+)
+
+plt.title("Crime Incidents by Time of Day for Each Crime Type", fontsize=14, fontweight='bold')
+plt.xlabel("Crime Type")
+plt.ylabel("Number of Crimes")
+plt.legend(title="Time of Day", loc="upper left", bbox_to_anchor=(1, 1))
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
