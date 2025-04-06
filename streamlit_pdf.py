@@ -10,7 +10,6 @@ import seaborn as sns
 import io
 from fpdf import FPDF
 
-
 # Wide or centered?
 st.set_page_config(layout="centered", page_title="Crime Data Analysis", page_icon="📊")
 
@@ -57,7 +56,6 @@ def load_data():
         crime['Start_Date_Time'] = pd.to_datetime(crime['Start_Date_Time'], format="%m/%d/%Y %I:%M:%S %p", errors='coerce')
         crime['End_Date_Time'] = pd.to_datetime(crime['End_Date_Time'], format="%m/%d/%Y %I:%M:%S %p", errors='coerce')
         crime['Dispatch Date / Time'] = pd.to_datetime(crime['Dispatch Date / Time'], format="%m/%d/%Y %I:%M:%S %p", errors='coerce')
-        crime['Response Time'] = (crime['Dispatch Date / Time'] - crime['Start_Date_Time']).dt.total_seconds()
         return crime
     except Exception as e:
         st.error("Error loading dataset: " + str(e))
@@ -69,12 +67,15 @@ crime = load_data()
 st.sidebar.title("Navigation")
 selected_analysis = st.sidebar.radio(
     "Choose an analysis:",
-    ["DataSet Description", "Advanced Feature Engineering",  "Statistical Analysis","Graphical Analysis"]
+    ["DataSet Description", "Advanced Feature Engineering", "Statistical Analysis", "Graphical Analysis"]
 )
 
 if crime is not None:
     if selected_analysis == "DataSet Description":
         st.header("1. Dataset Description")
+        st.write("This dataset, published on Kaggle by Tarun Tirawi, contains data about "
+                 "crimes committed in the state of Maryland, in the United States of America, "
+                 "between July 2016 and December 2020.")
         st.write("**Domain:** Crime Analysis")
         st.write("**Size:** {} rows and {} columns".format(crime.shape[0], crime.shape[1]))
         st.write("**Data Types:**")
@@ -107,10 +108,12 @@ if crime is not None:
         st.header("2. Advanced Feature Engineering")
 
         st.write("\n")
-        st.write("**New feature: Crime Duration**")
+        st.subheader("**New feature: Crime Duration**")
+        st.write("*Crime duration is the time difference between the Start_Date_Time and End_Date_Time.*")
 
         crime['Crime Duration'] = (crime['End_Date_Time'] - crime['Start_Date_Time']).dt.total_seconds()
 
+        st.write("\n")
         st.write("Crime Duration Mean: ", crime['Crime Duration'].mean())
         st.write("Crime Duration Median: ", crime['Crime Duration'].median())
         st.write("Crime Duration Variance: ", crime['Crime Duration'].var())
@@ -121,50 +124,55 @@ if crime is not None:
         st.write("Quartile 50:", crime['Crime Duration'].quantile(0.50))
         st.write("Quartile 75:", crime['Crime Duration'].quantile(0.75))
 
-        # Gráficos para Crime Duration (sugestão)
-        st.subheader("Crime Duration Analysis")
-        fig_duration_hist = plt.figure(figsize=(8, 4))
-        sns.histplot(crime['Crime Duration'].dropna(), kde=True)
-        plt.title('Distribution of Crime Duration')
-        plt.xlabel('Duration (seconds)')
-        plt.ylabel('Frequency')
-        st.pyplot(fig_duration_hist)
-
-        fig_duration_boxplot = plt.figure(figsize=(8, 4))
-        sns.boxplot(x=crime['Crime Duration'].dropna())
-        plt.title('Boxplot of Crime Duration')
-        plt.xlabel('Duration (seconds)')
-        st.pyplot(fig_duration_boxplot)
+        # # Gráficos para Crime Duration (sugestão)
+        # st.write("**Crime Duration Analysis**")
+        # fig_duration_hist = plt.figure(figsize=(8, 4))
+        # sns.histplot(crime['Crime Duration'].dropna(), kde=True)
+        # plt.title('Distribution of Crime Duration')
+        # plt.xlabel('Duration (seconds)')
+        # plt.ylabel('Frequency')
+        # st.pyplot(fig_duration_hist)
+        #
+        # fig_duration_boxplot = plt.figure(figsize=(8, 4))
+        # sns.boxplot(x=crime['Crime Duration'].dropna())
+        # plt.title('Boxplot of Crime Duration')
+        # plt.xlabel('Duration (seconds)')
+        # st.pyplot(fig_duration_boxplot)
 
         st.write("\n")
-        st.write("**New feature: Police Response Time**")
+        st.subheader("**New feature: Police Response Time**")
+        st.write("*Response Time is the time difference between the Start_Date_Time and Dispatch Date/Time.*")
 
+        crime['Response Time'] = (crime['Dispatch Date / Time'] - crime['Start_Date_Time']).dt.total_seconds()
+
+        st.write("\n")
         st.write("Response Time Mean: ", crime['Response Time'].mean())
         st.write("Response Time Median: ", crime['Response Time'].median())
         st.write("Response Time Variance: ", crime['Response Time'].var())
 
-        st.subheader("Police Response Time Analysis")
-        # GRAPH: Average Police Response Time per Police Department
-        average_response_time = crime.groupby('Police District Name')['Response Time'].mean().reset_index()
-        color = sns.color_palette("deep")[5]
-        fig_resp_dept = plt.figure(figsize=(12, 6))
-        plt.fill_between(average_response_time['Police District Name'], average_response_time['Response Time'], color=color, alpha=0.5)
-        plt.plot(average_response_time['Police District Name'], average_response_time['Response Time'], color=color, linewidth=2)
-        plt.xticks(rotation=45, ha='right')
-        plt.ylabel("Average Response Time in Seconds")
-        plt.title("Average Police Response Time per Department")
-        plt.tight_layout()
-        st.pyplot(fig_resp_dept)
-
-        # GRAPH: Average Police Response Time by Crime Type
-        crime_response_time_by_type = crime.groupby('Crime Name1')['Response Time'].mean().sort_values(ascending=False)
-        fig_resp_crime = plt.figure(figsize=(12, 6))
-        crime_response_time_by_type.plot(kind='barh', color=color)
-        plt.title('Average Police Response Time by Crime Type', fontsize=16)
-        plt.xlabel('Average Response Time (seconds)', fontsize=14)
-        plt.ylabel('Crime Type', fontsize=14)
-        plt.tight_layout()
-        st.pyplot(fig_resp_crime)
+        # st.write("\n")
+        # st.write("**Police Response Time Analysis**")
+        # # GRAPH: Average Police Response Time per Police Department
+        # average_response_time = crime.groupby('Police District Name')['Response Time'].mean().reset_index()
+        # color = sns.color_palette("deep")[5]
+        # fig_resp_dept = plt.figure(figsize=(12, 6))
+        # plt.fill_between(average_response_time['Police District Name'], average_response_time['Response Time'], color=color, alpha=0.5)
+        # plt.plot(average_response_time['Police District Name'], average_response_time['Response Time'], color=color, linewidth=2)
+        # plt.xticks(rotation=45, ha='right')
+        # plt.ylabel("Average Response Time in Seconds")
+        # plt.title("Average Police Response Time per Department")
+        # plt.tight_layout()
+        # st.pyplot(fig_resp_dept)
+        #
+        # # GRAPH: Average Police Response Time by Crime Type
+        # crime_response_time_by_type = crime.groupby('Crime Name1')['Response Time'].mean().sort_values(ascending=False)
+        # fig_resp_crime = plt.figure(figsize=(12, 6))
+        # crime_response_time_by_type.plot(kind='barh', color=color)
+        # plt.title('Average Police Response Time by Crime Type', fontsize=16)
+        # plt.xlabel('Average Response Time (seconds)', fontsize=14)
+        # plt.ylabel('Crime Type', fontsize=14)
+        # plt.tight_layout()
+        # st.pyplot(fig_resp_crime)
 
     elif selected_analysis == "Statistical Analysis":
         st.header("3. Statistical Analysis")
@@ -180,7 +188,7 @@ if crime is not None:
         st.write(crime['Crime Name1'].value_counts())
         st.write("\n")
         st.write("**Crime Name 2**")
-        st.write(crime['Crime Name2'].value_counts()) # Corrigi para Crime Name 2
+        st.write(crime['Crime Name2'].value_counts())
         st.write("\n")
         st.write("**Police District Name**")
         st.write(crime['Police District Name'].value_counts())
@@ -230,7 +238,6 @@ if crime is not None:
         st.write("*Crime Name 1 Covariance*")
         st.write("Covariance between Crime Name 1 and Police District Name:", crime['Crime Name1 Encoded'].cov(crime['Police District Encoded']))
         st.write("Covariance between Crime Name 1 and City:", crime['Crime Name1 Encoded'].cov(crime['City Encoded']))
-        st.write("Covariance between Crime Name 1 and Zip Code:", crime['Crime Name1 Encoded'].cov(crime['Zip Code Encoded']))
 
         st.write("---")
         st.write("**Correlation**")
@@ -253,8 +260,7 @@ if crime is not None:
         st.write(crime['Victims'].quantile([0.25, 0.5, 0.75]))
 
 
-
-#------------GRÁFICOS-----------
+    #------------GRÁFICOS-----------
 
     elif selected_analysis == "Graphical Analysis":
         st.header("4. Graphical Analysis")
@@ -275,6 +281,7 @@ if crime is not None:
 
         if analysis_type == "Crime Analysis":
             st.subheader("Crime Analysis")
+            st.write("\n")
 
             # 2. Distribution of Crime Type in %
             crime_counts = crime['Crime Name1'].value_counts()
@@ -284,6 +291,8 @@ if crime is not None:
             plt.axis('equal')
             st.pyplot(fig2)
             figures.append(fig2)
+
+            st.write("---")
 
             # 3. Most Committed Crime Types
             deep_palette = sns.color_palette("deep")
@@ -306,6 +315,7 @@ if crime is not None:
             st.pyplot(fig3)
             figures.append(fig3)
 
+            st.write("---")
 
             # 4. Most committed crime (CrimeName2) per CrimeName1
             top_main_types = crime["Crime Name1"].value_counts().head(3).index
@@ -329,6 +339,7 @@ if crime is not None:
             st.pyplot(fig4)
             figures.append(fig4)
 
+            st.write("---")
 
             # 5. Most committed crime (CrimeName3) per CrimeName2
             top_subtypes2 = crime["Crime Name2"].value_counts().head(3).index
@@ -369,8 +380,8 @@ if crime is not None:
 
 
         elif analysis_type == "Analysis of Crime Occurrence and Time":
-
             st.subheader("Analysis of Crime Occurrence and Time")
+            st.write("---")
 
             crime['Year'] = crime['Start_Date_Time'].dt.year
 
@@ -390,7 +401,6 @@ if crime is not None:
                 figures.append(fig6)
 
             with col2:
-
                 # 7. Monthly Crime Distribution (Overall)
                 fig7 = plt.figure(figsize=(10, 6))
 
@@ -399,6 +409,8 @@ if crime is not None:
                 plt.title("Monthly Crime Distribution (Overall)")
                 st.pyplot(fig7)
                 figures.append(fig7)
+
+            st.write("---")
 
             # 9. Crime Type Distribution Over Time
             crime["Year"] = crime["Start_Date_Time"].dt.year
@@ -418,6 +430,8 @@ if crime is not None:
             st.pyplot(fig11)
             figures.append(fig11)
 
+            st.write("---")
+
             # 10. Crime Incidents by Hour of the Day
             color_hour = sns.color_palette("deep")[3]
             crime["Hour"] = crime["Start_Date_Time"].dt.hour
@@ -435,10 +449,11 @@ if crime is not None:
             st.pyplot(fig12)
             figures.append(fig12)
 
+            st.write("---")
+
             # 11. Most Frequent Hours of Crime Name1
             crime["Start_Date_Time"] = pd.to_datetime(crime["Start_Date_Time"])
             crime["Hour"] = crime["Start_Date_Time"].dt.hour
-
 
             def get_period(hour):
                 if 6 <= hour < 12:
@@ -447,7 +462,6 @@ if crime is not None:
                     return "Afternoon (12-17)"
                 else:
                     return "Night (18-5)"
-
 
             crime["Period"] = crime["Hour"].apply(get_period)
             top_main_types = crime["Crime Name1"].value_counts().head(3).index
@@ -499,6 +513,7 @@ if crime is not None:
 
         elif analysis_type == "Analysis of Crime Location":
             st.subheader("Analysis of Crime Location")
+            st.write("\n")
 
             # 12. Number of Crimes by city
             fig14 = plt.figure(figsize=(10, 6))
@@ -514,6 +529,8 @@ if crime is not None:
             plt.xticks(rotation=45, ha='right')
             st.pyplot(fig14)
             figures.append(fig14)
+
+            st.write("---")
 
             # 13. Top 5 Cities with Most Crimes
             city_counts = crime["City"].value_counts()
@@ -535,6 +552,8 @@ if crime is not None:
             st.pyplot(fig15)
             figures.append(fig15)
 
+            st.write("---")
+
             # 14. Most Committed Crime by City
             crime_city_top = crime.groupby('City')['Crime Name1'].agg(lambda x: x.value_counts().idxmax()).reset_index()
             crime_counts_city = crime.groupby(['City', 'Crime Name1']).size().reset_index(name='Crime Count')
@@ -553,6 +572,8 @@ if crime is not None:
 
             st.pyplot(fig16)
             figures.append(fig16)
+
+            st.write("---")
 
             # 15. Crime by Patrol Area
             crime_counts_beat = crime['Beat'].value_counts()
@@ -577,6 +598,8 @@ if crime is not None:
             st.pyplot(fig17)
             figures.append(fig17)
 
+            st.write("---")
+
             # 16. Crime by ZIP Code
             crime_by_zip = crime.groupby('Zip Code')['Incident ID'].count()
 
@@ -590,6 +613,8 @@ if crime is not None:
             plt.colorbar(label="Number of Crimes")
             st.pyplot(fig18)
             figures.append(fig18)
+
+            st.write("---")
 
             # 17. Crime Type Distribution for Each Police District
             crime_pivot = crime.pivot_table(index="Police District Name", columns='Crime Name1', aggfunc='size',
@@ -605,6 +630,8 @@ if crime is not None:
             st.pyplot(fig19)
             figures.append(fig19)
 
+            st.write("---")
+
             # 18. Crime Type Distribution for Each Police District (Bar Chart)
             crime_by_district = crime.groupby(['Police District Name', 'Crime Name1'])['Incident ID'].count().unstack()
             fig20 = plt.figure(figsize=(12, 8))
@@ -616,6 +643,8 @@ if crime is not None:
             plt.tight_layout()
             st.pyplot(fig20)
             figures.append(fig20)
+
+            st.write("---")
 
             # 19. Crime Count by Police District
             crime_counts_district = crime['Police District Name'].value_counts().reset_index()
@@ -633,6 +662,8 @@ if crime is not None:
             plt.tight_layout()
             st.pyplot(fig21)
             figures.append(fig21)
+
+            st.write("---")
 
             # 20. Heat map with longitude and latitude
             st.subheader("Heat map with longitude and latitude")
@@ -657,8 +688,6 @@ if crime is not None:
             st.subheader("Analysis of Police Response Time")
 
             # Average Police Response Time per Police Department
-            st.subheader("Average Police Response Time")
-
             average_response_time = crime.groupby('Police District Name')['Response Time'].mean().reset_index()
             color_resp = sns.color_palette("deep")[5]
             fig22 = plt.figure(figsize=(12, 6))
@@ -671,6 +700,8 @@ if crime is not None:
             plt.tight_layout()
             st.pyplot(fig22)
             figures.append(fig22)
+
+            st.write("---")
 
             # Average Police Response Time by Crime Type
             crime_response_time_by_type = crime.groupby('Crime Name1')['Response Time'].mean().sort_values(
@@ -710,7 +741,7 @@ if crime is not None:
             st.pyplot(fig24)
             figures.append(fig24)
 
-
+            st.write("---")
 
             # Average Number of Victims per Crime
             avg_victims_per_crime = crime.groupby("Crime Name1")["Victims"].mean().sort_values(ascending=False)
