@@ -306,6 +306,7 @@ if crime is not None:
             st.pyplot(fig3)
             figures.append(fig3)
 
+
             # 4. Most committed crime (CrimeName2) per CrimeName1
             top_main_types = crime["Crime Name1"].value_counts().head(3).index
             filtered_crime = crime[crime["Crime Name1"].isin(top_main_types)]
@@ -314,50 +315,57 @@ if crime is not None:
             top_subtypes = grouped.sum(axis=0).sort_values(ascending=False).head(5).index
             grouped = grouped[top_subtypes]
 
-            colors_grouped = sns.color_palette("deep", n_colors=len(top_subtypes))
+            colors = sns.color_palette("deep", n_colors=len(top_subtypes))
 
-            fig4 = plt.figure(figsize=(12, 6))
-            grouped.plot(kind='bar', stacked=True, color=colors_grouped)
+            fig4, ax = plt.subplots(figsize=(12, 8))
+            grouped.plot(kind='bar', stacked=True, figsize=(12, 8), color=colors, ax=ax)
 
-            plt.title("Top 5 Subtypes (Crime Name2) in Top 3 Crime Categories (Crime Name1)", fontsize=14,
-                      fontweight='bold')
-            plt.xlabel("Main Crime Type (Crime Name1)")
-            plt.ylabel("Number of Crimes")
-            plt.legend(title="Subtype (Crime Name2)")
+            ax.set_title("Top 5 Subtypes in Top 3 Crime Categories", fontsize=14, fontweight='bold')
+            ax.set_xlabel("Main Crime Type (Crime Name1)")
+            ax.set_ylabel("Number of Crimes")
+            ax.legend(title="Subtype (Crime Name2)")
             plt.xticks(rotation=0)
             plt.tight_layout()
             st.pyplot(fig4)
             figures.append(fig4)
 
+
             # 5. Most committed crime (CrimeName3) per CrimeName2
             top_subtypes2 = crime["Crime Name2"].value_counts().head(3).index
             filtered_crime2 = crime[crime["Crime Name2"].isin(top_subtypes2)]
 
-            fig5 = plt.figure(figsize=(12, 6))
-
             grouped2 = filtered_crime2.groupby(["Crime Name2", "Crime Name3"]).size().unstack(fill_value=0)
+
             top_name3 = grouped2.sum(axis=0).sort_values(ascending=False).head(5).index
             grouped2 = grouped2[top_name3]
 
             colors2 = sns.color_palette("deep", n_colors=len(top_name3))
 
-            grouped2.plot(kind='bar', stacked=True, color=colors2)
+            fig5, ax2 = plt.subplots(figsize=(12, 8))
+            grouped2.plot(kind='bar', stacked=True, figsize=(12, 8), color=colors2, ax=ax2)
 
-            plt.title("Top 5 Crime Name3 in Top 3 Crime Name2", fontsize=14, fontweight='bold')
-            plt.xlabel("Crime Subtype (Crime Name2)")
-            plt.ylabel("Number of Crimes")
-            plt.legend(title="Crime Detail (Crime Name3)")
+            ax2.set_title("Top 5 Crime Name3 in Top 3 Crime Name2", fontsize=14, fontweight='bold')
+            ax2.set_xlabel("Crime Subtype (Crime Name2)")
+            ax2.set_ylabel("Number of Crimes")
+            ax2.legend(title="Crime Detail (Crime Name3)")
             plt.xticks(rotation=0)
             plt.tight_layout()
             st.pyplot(fig5)
             figures.append(fig5)
+            #st.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
 
-            if st.button("Create PDF"):
-                pdf_path = generate_pdf(figures)
-                st.success("PDF created with success!")
+            col1, col2, col3 = st.columns([7.5, 5, 4])
 
-                with open(pdf_path, "rb") as f:
-                    st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
+            with col2:
+                if st.button("Create PDF"):
+                    pdf_path = generate_pdf(figures)
+                    st.success("PDF created with success!")
+
+                    with open(pdf_path, "rb") as f:
+                        st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
 
 
         elif analysis_type == "Analysis of Crime Occurrence and Time":
@@ -475,13 +483,19 @@ if crime is not None:
             plt.tight_layout()
             st.pyplot(fig13)
             figures.append(fig13)
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
 
-            if st.button("Create PDF"):
-                pdf_path = generate_pdf(figures)
-                st.success("PDF created with success!")
+            col1, col2, col3 = st.columns([7.5, 5, 4])
 
-                with open(pdf_path, "rb") as f:
-                    st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
+            with col2:
+                if st.button("Create PDF"):
+                    pdf_path = generate_pdf(figures)
+                    st.success("PDF created with success!")
+
+                    with open(pdf_path, "rb") as f:
+                        st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
 
         elif analysis_type == "Analysis of Crime Location":
             st.subheader("Analysis of Crime Location")
@@ -625,13 +639,19 @@ if crime is not None:
             m_1 = folium.Map(location=[39.1377, -77.13593], tiles="openstreetmap", zoom_start=10)
             HeatMap(data=crime[["Latitude", "Longitude"]].dropna(), radius=10).add_to(m_1)
             st_folium(m_1, width=700)
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
 
-            if st.button("Create PDF"):
-                pdf_path = generate_pdf(figures)
-                st.success("PDF created with success!")
+            col1, col2, col3 = st.columns([7.5, 5, 4])
 
-                with open(pdf_path, "rb") as f:
-                    st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
+            with col2:
+                if st.button("Create PDF"):
+                    pdf_path = generate_pdf(figures)
+                    st.success("PDF created with success!")
+
+                    with open(pdf_path, "rb") as f:
+                        st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
 
         elif analysis_type == "Analysis of Police Response Time":
             st.subheader("Analysis of Police Response Time")
@@ -663,13 +683,19 @@ if crime is not None:
             plt.tight_layout()
             st.pyplot(fig23)
             figures.append(fig23)
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
 
-            if st.button("Create PDF"):
-                pdf_path = generate_pdf(figures)
-                st.success("PDF created with success!")
+            col1, col2, col3 = st.columns([7.5, 5, 4])
 
-                with open(pdf_path, "rb") as f:
-                    st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
+            with col2:
+                if st.button("Create PDF"):
+                    pdf_path = generate_pdf(figures)
+                    st.success("PDF created with success!")
+
+                    with open(pdf_path, "rb") as f:
+                        st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
 
         elif analysis_type == "Analysis of Crime Victims":
             st.subheader("Analysis of Crime Victims")
@@ -712,10 +738,16 @@ if crime is not None:
             plt.tight_layout()
             st.pyplot(fig)
             figures.append(fig)
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
 
-            if st.button("Create PDF"):
-                pdf_path = generate_pdf(figures)
-                st.success("PDF created with success!")
+            col1, col2, col3 = st.columns([7.5, 5, 4])
 
-                with open(pdf_path, "rb") as f:
-                    st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
+            with col2:
+                if st.button("Create PDF"):
+                    pdf_path = generate_pdf(figures)
+                    st.success("PDF created with success!")
+
+                    with open(pdf_path, "rb") as f:
+                        st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
