@@ -591,7 +591,6 @@ plt.tight_layout()
 plt.show()
 
 
-
 ## crime mais cometido (crimeName3) por CrimeName2
 top_subtypes2 = crime["Crime Name2"].value_counts().head(3).index
 filtered_crime2 = crime[crime["Crime Name2"].isin(top_subtypes2)]

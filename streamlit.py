@@ -56,6 +56,7 @@ def load_data():
         crime['Start_Date_Time'] = pd.to_datetime(crime['Start_Date_Time'], format="%m/%d/%Y %I:%M:%S %p", errors='coerce')
         crime['End_Date_Time'] = pd.to_datetime(crime['End_Date_Time'], format="%m/%d/%Y %I:%M:%S %p", errors='coerce')
         crime['Dispatch Date / Time'] = pd.to_datetime(crime['Dispatch Date / Time'], format="%m/%d/%Y %I:%M:%S %p", errors='coerce')
+        crime['Crime Duration'] = (crime['End_Date_Time'] - crime['Start_Date_Time']).dt.total_seconds()
         crime['Response Time'] = (crime['Dispatch Date / Time'] - crime['Start_Date_Time']).dt.total_seconds()
         return crime
     except Exception as e:
@@ -603,9 +604,12 @@ if crime is not None:
 
             # 16. Crime by ZIP Code
             crime_by_zip = crime.groupby('Zip Code')['Incident ID'].count()
+            crime_by_zip_filtered = crime_by_zip[(crime_by_zip.index >= 20588) & (crime_by_zip.index <= 21930)]
 
             fig18 = plt.figure(figsize=(12, 8))
-            plt.scatter(crime_by_zip.index, crime_by_zip.values, c=crime_by_zip.values, cmap='coolwarm', s=100)
+            plt.scatter(crime_by_zip_filtered.index, crime_by_zip_filtered.values, c=crime_by_zip_filtered.values,
+                        cmap='coolwarm',
+                        s=100)
 
             plt.title("Crime by Zip Code", fontsize=16, fontweight='bold')
             plt.xlabel("Zip Code", fontsize=14)
@@ -613,6 +617,7 @@ if crime is not None:
 
             plt.colorbar(label="Number of Crimes")
             st.pyplot(fig18)
+
             figures.append(fig18)
 
             st.write("---")
