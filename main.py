@@ -17,6 +17,7 @@ sns.set(style="whitegrid")
 def load_data():
     try:
         df = pd.read_excel("Crime Excel.xlsx")
+        print(df.columns)
     except Exception as e:
         st.error("Error loading dataset: " + str(e))
         return None
@@ -429,4 +430,37 @@ plt.show()
 
 # Stacked bar chart showing the distribution of crime types for each police district
 df.groupby(["Police District Name", "Crime Name1"]).size().unstack().plot(kind='bar', stacked=True, figsize=(12, 8), title="Crime Type Distribution for Each Police District")
+plt.show()
+
+# Naive Bayers
+df.dropna(inplace=True)
+
+# Разделение на признаки и целевую переменную
+X = df.drop(columns='Crime Name1')
+y = df['Crime Name1']
+
+# Разделение на тренировочную и тестовую выборки
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Создание и обучение модели Naive Bayes
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+# Предсказание
+y_pred = model.predict(X_test)
+
+# Оценка модели
+print("Naive Bayes Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, zero_division=0))
+
+# Матрица ошибок
+cm = confusion_matrix(y_test, y_pred)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)
+
+# Визуализация
+plt.figure(figsize=(10, 8))
+disp.plot(xticks_rotation=45)
+plt.title("Confusion Matrix - Naive Bayes")
+plt.tight_layout()
 plt.show()
