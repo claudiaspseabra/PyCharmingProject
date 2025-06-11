@@ -20,13 +20,13 @@ data["crime_duration"] = (data["End_Date_Time"] - data["Start_Date_Time"]).dt.to
 data["Hour"] = data["Start_Date_Time"].dt.hour
 data["Year"] = data["Start_Date_Time"].dt.year
 
-df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name2", "Police District Name"]].dropna()
+df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name1", "Police District Name"]].dropna()
 
-top_crimes = df["Crime Name2"].value_counts().nlargest(10).index
-df = df[df["Crime Name2"].isin(top_crimes)]
+top_crimes = df["Crime Name1"].value_counts().nlargest(10).index
+df = df[df["Crime Name1"].isin(top_crimes)]
 
 le = LabelEncoder()
-df["Crime_Label"] = le.fit_transform(df["Crime Name2"])
+df["Crime_Label"] = le.fit_transform(df["Crime Name1"])
 df["District_Code"] = LabelEncoder().fit_transform(df["Police District Name"])
 
 X = df[["response_time", "crime_duration", "Hour", "Year", "District_Code"]]
@@ -56,12 +56,11 @@ print("Classification Report:\n", classification_report(y_test, y_pred, zero_div
 cm = confusion_matrix(y_test, y_pred)
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.inverse_transform(np.unique(y)))
 disp.plot()
-plt.title("Confusion Matrix (Naive Bayes)")
+plt.title("Confusion Matrix (Naive Bayes - Crime Name1)")
 plt.show()
 
-# ===== PCA =====
-
 # PCA
+
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)
 print(f"\nPCA: Reduced from {X_scaled.shape[1]} to {X_pca.shape[1]} components")
@@ -85,5 +84,5 @@ print("Classification Report with PCA:\n", classification_report(y_test_pca, y_p
 cm_pca = confusion_matrix(y_test_pca, y_pred_pca)
 disp_pca = ConfusionMatrixDisplay(confusion_matrix=cm_pca, display_labels=le.inverse_transform(np.unique(y)))
 disp_pca.plot()
-plt.title("Confusion Matrix (Naive Bayes with PCA)")
+plt.title("Confusion Matrix (Naive Bayes with PCA - Crime Name1)")
 plt.show()
