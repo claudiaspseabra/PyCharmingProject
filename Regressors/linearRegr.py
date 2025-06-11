@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-df = pd.read_csv("Crime.csv", low_memory=False)
+df = pd.read_csv("../Crime.csv", low_memory=False)
 
 df_numeric = df.select_dtypes(include=[np.number])
 

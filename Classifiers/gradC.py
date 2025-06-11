@@ -8,7 +8,7 @@ import seaborn as sns
 import time
 from sklearn.decomposition import PCA
 
-data = pd.read_csv("Crime.csv", low_memory=False)
+data = pd.read_csv("../Crime.csv", low_memory=False)
 data = data[data["State"] == "MD"]
 
 data["Start_Date_Time"] = pd.to_datetime(data["Start_Date_Time"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce")
@@ -20,14 +20,13 @@ data["crime_duration"] = (data["End_Date_Time"] - data["Start_Date_Time"]).dt.to
 data["Hour"] = data["Start_Date_Time"].dt.hour
 data["Year"] = data["Start_Date_Time"].dt.year
 
-df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name1", "Police District Name"]].dropna()
+df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name2", "Police District Name"]].dropna()
 
-top_crimes = df["Crime Name1"].value_counts().nlargest(10).index
-df = df[df["Crime Name1"].isin(top_crimes)]
-
+top_crimes = df["Crime Name2"].value_counts().nlargest(10).index
+df = df[df["Crime Name2"].isin(top_crimes)]
 df = df.sample(n=10000, random_state=42)
 
-df["Crime_Label"] = LabelEncoder().fit_transform(df["Crime Name1"])
+df["Crime_Label"] = LabelEncoder().fit_transform(df["Crime Name2"])
 df["District_Code"] = LabelEncoder().fit_transform(df["Police District Name"])
 
 X = df[["response_time", "crime_duration", "Hour", "Year", "District_Code"]]
@@ -53,6 +52,7 @@ y_pred = gb_clf.predict(X_test)
 
 print("\nConfusion Matrix:")
 print(confusion_matrix(y_test, y_pred))
+
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
 
@@ -60,10 +60,10 @@ plt.figure(figsize=(8, 6))
 sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
-plt.title("Confusion Matrix - Gradient Boosting Classification (Crime Name1)")
+plt.title("Confusion Matrix - Gradient Boosting Classification (Crime Type)")
 plt.show()
 
-# PCA
+# PCA + Gradient Boosting
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)
 print(f"\nPCA: Reduced from {X_scaled.shape[1]} to {X_pca.shape[1]} components")
@@ -85,6 +85,7 @@ y_pred_pca = gb_clf_pca.predict(X_test_pca)
 
 print("\nConfusion Matrix with PCA:")
 print(confusion_matrix(y_test_pca, y_pred_pca))
+
 print("\nClassification Report with PCA:")
 print(classification_report(y_test_pca, y_pred_pca))
 
@@ -92,5 +93,5 @@ plt.figure(figsize=(8, 6))
 sns.heatmap(confusion_matrix(y_test_pca, y_pred_pca), annot=True, fmt='d', cmap='Greens')
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
-plt.title("Confusion Matrix - Gradient Boosting Classification with PCA (Crime Name1)")
+plt.title("Confusion Matrix - Gradient Boosting Classification with PCA (Crime Type)")
 plt.show()

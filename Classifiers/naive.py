@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import time
 
-data = pd.read_csv("Crime.csv", low_memory=False)
+data = pd.read_csv("../Crime.csv", low_memory=False)
 data = data[data["State"] == "MD"]
 
 data["Start_Date_Time"] = pd.to_datetime(data["Start_Date_Time"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce")
@@ -56,7 +56,7 @@ print("Classification Report:\n", classification_report(y_test, y_pred, zero_div
 cm = confusion_matrix(y_test, y_pred)
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.inverse_transform(np.unique(y)))
 disp.plot()
-plt.title("Confusion Matrix (Naive Bayes)")
+plt.title("Confusion Matrix (Naive Bayes - Crime Name1)")
 plt.show()
 
 # PCA
@@ -84,5 +84,5 @@ print("Classification Report with PCA:\n", classification_report(y_test_pca, y_p
 cm_pca = confusion_matrix(y_test_pca, y_pred_pca)
 disp_pca = ConfusionMatrixDisplay(confusion_matrix=cm_pca, display_labels=le.inverse_transform(np.unique(y)))
 disp_pca.plot()
-plt.title("Confusion Matrix (Naive Bayes with PCA)")
+plt.title("Confusion Matrix (Naive Bayes with PCA - Crime Name1)")
 plt.show()

@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import r2_score, mean_absolute_error
 
 # Loading the dataset
-data = pd.read_csv("Crime.csv", low_memory=False)
+data = pd.read_csv("../Crime.csv", low_memory=False)
 
 # Filtering only for Maryland
 data = data[data["State"] == "MD"]

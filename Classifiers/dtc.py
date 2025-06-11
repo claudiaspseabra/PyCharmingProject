@@ -10,7 +10,7 @@ from sklearn.decomposition import PCA
 
 # decision tree muito complexa
 
-data = pd.read_csv("Crime.csv", low_memory=False)
+data = pd.read_csv("../Crime.csv", low_memory=False)
 data = data[data["State"] == "MD"]
 
 data["Start_Date_Time"] = pd.to_datetime(data["Start_Date_Time"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce")
