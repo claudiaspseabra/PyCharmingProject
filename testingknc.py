@@ -19,22 +19,19 @@ data["crime_duration"] = (data["End_Date_Time"] - data["Start_Date_Time"]).dt.to
 data["Hour"] = data["Start_Date_Time"].dt.hour
 data["Year"] = data["Start_Date_Time"].dt.year
 
-df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name2", "Police District Name"]].dropna()
+df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name1", "Police District Name"]].dropna()
 
-top_crimes = df["Crime Name2"].value_counts().nlargest(10).index
-df = df[df["Crime Name2"].isin(top_crimes)]
-#df = df.sample(n=10000, random_state=42)
+top_crimes = df["Crime Name1"].value_counts().nlargest(10).index
+df = df[df["Crime Name1"].isin(top_crimes)]
 
-df["Crime_Label"] = LabelEncoder().fit_transform(df["Crime Name2"])
+df["Crime_Label"] = LabelEncoder().fit_transform(df["Crime Name1"])
 df["District_Code"] = LabelEncoder().fit_transform(df["Police District Name"])
-
 
 X = df[["response_time", "crime_duration", "Hour", "Year", "District_Code"]]
 y = df["Crime_Label"]
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
-
 
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
@@ -50,13 +47,11 @@ end = time.time()
 
 y_pred = knn_clf.predict(X_test)
 
-print("Training time with PCA:", end - start)
+print("Training time:", end - start)
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print(classification_report(y_test, y_pred))
 
-
-
-## -------- PCA --------
+# PCA
 
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)

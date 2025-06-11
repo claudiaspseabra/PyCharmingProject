@@ -25,7 +25,8 @@ data["Year"] = data["Start_Date_Time"].dt.year
 df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name2", "Police District Name"]].dropna()
 top_crimes = df["Crime Name2"].value_counts().nlargest(10).index
 df = df[df["Crime Name2"].isin(top_crimes)]
-df = df.sample(n=10000, random_state=42)
+#df = df.sample(n=10000, random_state=42)
+#df = df.sample(random_state=42)
 
 df["Crime_Label"] = LabelEncoder().fit_transform(df["Crime Name2"])
 df["District_Code"] = LabelEncoder().fit_transform(df["Police District Name"])

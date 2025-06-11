@@ -8,12 +8,6 @@ import seaborn as sns
 import time
 from sklearn.decomposition import PCA
 
-# Completed tasks:
-# Analysis of the fit time per machine learning model (5%)
-# Apply Principal Component Analysis and compare accuracy and execution time
-# of the previous machine learning models. Use dimensionality reduction based on SVD. (5%)
-# Perform Cross Validation (5%)
-
 data = pd.read_csv("Crime.csv", low_memory=False)
 data = data[data["State"] == "MD"]
 
@@ -26,13 +20,14 @@ data["crime_duration"] = (data["End_Date_Time"] - data["Start_Date_Time"]).dt.to
 data["Hour"] = data["Start_Date_Time"].dt.hour
 data["Year"] = data["Start_Date_Time"].dt.year
 
-df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name2", "Police District Name"]].dropna()
+df = data[["response_time", "crime_duration", "Hour", "Year", "Crime Name1", "Police District Name"]].dropna()
 
-top_crimes = df["Crime Name2"].value_counts().nlargest(10).index
-df = df[df["Crime Name2"].isin(top_crimes)]
+top_crimes = df["Crime Name1"].value_counts().nlargest(10).index
+df = df[df["Crime Name1"].isin(top_crimes)]
+
 df = df.sample(n=10000, random_state=42)
 
-df["Crime_Label"] = LabelEncoder().fit_transform(df["Crime Name2"])
+df["Crime_Label"] = LabelEncoder().fit_transform(df["Crime Name1"])
 df["District_Code"] = LabelEncoder().fit_transform(df["Police District Name"])
 
 X = df[["response_time", "crime_duration", "Hour", "Year", "District_Code"]]
@@ -41,7 +36,6 @@ y = df["Crime_Label"]
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Cross-validation
 svm_clf = SVC(kernel='linear', C=10, gamma='scale', class_weight='balanced')
 cv_scores = cross_val_score(svm_clf, X_scaled, y, cv=5, scoring='accuracy')
 print("Mean Accuracy (Cross-Validation):", cv_scores.mean())
@@ -66,10 +60,10 @@ plt.figure(figsize=(8, 6))
 sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
-plt.title("Confusion Matrix - SVM Classification (Crime Type)")
+plt.title("Confusion Matrix - SVM Classification (Crime Name1)")
 plt.show()
 
-# PCA + SVM
+# PCA
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)
 print(f"\nPCA: Reduced from {X_scaled.shape[1]} to {X_pca.shape[1]} components")
@@ -98,5 +92,5 @@ plt.figure(figsize=(8, 6))
 sns.heatmap(confusion_matrix(y_test_pca, y_pred_pca), annot=True, fmt='d', cmap='Greens')
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
-plt.title("Confusion Matrix - SVM Classification with PCA (Crime Type)")
+plt.title("Confusion Matrix - SVM Classification with PCA (Crime Name1)")
 plt.show()
