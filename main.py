@@ -796,14 +796,13 @@ if crime is not None:
                     with open(pdf_path, "rb") as f:
                         st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
 
+
     elif selected_analysis == "Prediction":
         st.header("5. Crime Type Prediction")
-        st.write("cute description using gradient boosting blablabla")
+        st.write(
+            "Predict the type of crime using a Gradient Boosting model. PCA-based prediction is also provided for comparison.")
 
-        df_pred = crime[["Start_Date_Time",
-                         "End_Date_Time",
-                         "Dispatch Date / Time",
-                         "Crime Name1",
+        df_pred = crime[["Start_Date_Time", "End_Date_Time", "Dispatch Date / Time", "Crime Name1",
                          "Police District Name"]].dropna()
         df_pred["response_time"] = (df_pred["Dispatch Date / Time"] - df_pred["Start_Date_Time"]).dt.total_seconds()
         df_pred["crime_duration"] = (df_pred["End_Date_Time"] - df_pred["Start_Date_Time"]).dt.total_seconds()
@@ -827,21 +826,37 @@ if crime is not None:
         gb_clf = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
         gb_clf.fit(X_scaled, y)
 
+        # PCA setup
+        pca = PCA(n_components=0.95, svd_solver='full')
+        X_pca = pca.fit_transform(X_scaled)
+
+        gb_clf_pca = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+        gb_clf_pca.fit(X_pca, y)
+
         if "prediction_result" not in st.session_state:
             st.session_state.prediction_result = None
+        if "prediction_result_pca" not in st.session_state:
+            st.session_state.prediction_result_pca = None
         if "show_evaluation" not in st.session_state:
             st.session_state.show_evaluation = False
 
         with st.form("prediction_form"):
             st.subheader("Occurrence details:")
 
-            response_time_min = st.number_input("Police response time (minutes)", min_value=0.0)
-            crime_duration_min = st.number_input("Crime duration (minutes)", min_value=0.0)
+            response_time_min = st.number_input("Police response time (minutes)", min_value=1.0)
+            crime_duration_min = st.number_input("Crime duration (minutes)", min_value=1.0)
             hour_input = st.number_input("Hour of the day (0-23)", min_value=0, max_value=23)
             year_input = st.number_input("Year", min_value=2016, max_value=2020)
             district_input = st.selectbox("Police district", options=list(le_district.classes_))
 
-            submitted = st.form_submit_button("Predict Type of Crime")
+            col1, col2, col3 = st.columns([1, 0.5, 1])
+            with col1:
+                use_pca = st.toggle("Use PCA Model", value=False)
+                st.markdown(
+                    "<small>This means the model will reduce feature dimensions before predicting, potentially improving performance.</small>",
+                    unsafe_allow_html=True)
+            with col3:
+                submitted = st.form_submit_button("Predict Type of Crime")
 
         if submitted:
             try:
@@ -858,29 +873,49 @@ if crime is not None:
                 }])
 
                 user_scaled = scaler.transform(user_data)
-                prediction = gb_clf.predict(user_scaled)[0]
-                prediction_proba = gb_clf.predict_proba(user_scaled)[0]
 
-                crime_name = le_crime.inverse_transform([prediction])[0]
-                confidence = round(100 * prediction_proba[prediction], 2)
+                if use_pca:
+                    # PCA prediction
+                    user_pca = pca.transform(user_scaled)
+                    prediction_pca = gb_clf_pca.predict(user_pca)[0]
+                    prediction_proba_pca = gb_clf_pca.predict_proba(user_pca)[0]
+                    crime_name_pca = le_crime.inverse_transform([prediction_pca])[0]
+                    confidence_pca = round(100 * prediction_proba_pca[prediction_pca], 2)
+                    st.session_state.prediction_result_pca = (crime_name_pca, confidence_pca)
+                    st.session_state.prediction_result = None
+                else:
+                    # Normal prediction
+                    prediction = gb_clf.predict(user_scaled)[0]
+                    prediction_proba = gb_clf.predict_proba(user_scaled)[0]
+                    crime_name = le_crime.inverse_transform([prediction])[0]
+                    confidence = round(100 * prediction_proba[prediction], 2)
+                    st.session_state.prediction_result = (crime_name, confidence)
+                    st.session_state.prediction_result_pca = None
 
-                st.session_state.prediction_result = (crime_name, confidence)
-                st.session_state.show_evaluation = False  # Reset avaliação
+                st.session_state.show_evaluation = False  # Reset evaluation display
 
             except Exception as e:
                 st.error(f"Error: {e}")
                 st.session_state.prediction_result = None
+                st.session_state.prediction_result_pca = None
 
         if st.session_state.prediction_result:
             crime_name, confidence = st.session_state.prediction_result
-            st.success(f"Type of crime predicted: **{crime_name}**")
-            st.info(f"Accuracy: **{confidence}%**")
+            st.success(f"Prediction (Standard Model): **{crime_name}**")
+            st.info(f"Confidence: **{confidence}%**")
 
-            if st.button("Show model evaluation"):
-                st.session_state.show_evaluation = True
+        if st.session_state.prediction_result_pca:
+            crime_name_pca, confidence_pca = st.session_state.prediction_result_pca
+            st.success(f"Prediction (PCA Model): **{crime_name_pca}**")
+            st.info(f"Confidence (PCA): **{confidence_pca}%**")
+
+        if st.button("Show model evaluation"):
+            st.session_state.show_evaluation = True
 
         if st.session_state.show_evaluation:
-            st.subheader("Confusion Matrix")
+            st.subheader("Confusion Matrix (Standard Model)")
+            st.write(
+                "This confusion matrix shows the performance of the Gradient Boosting model without PCA. It compares the true crime labels versus the predicted labels.")
             X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
             gb_clf.fit(X_train, y_train)
             y_pred = gb_clf.predict(X_test)
@@ -892,7 +927,31 @@ if crime is not None:
             plt.title("Confusion Matrix - Gradient Boosting")
             st.pyplot(fig_conf)
 
-            st.subheader("Classification Report")
+            st.subheader("Classification Report (Standard Model)")
+            st.write(
+                "This classification report summarizes precision, recall, f1-score, and support for each crime category predicted by the standard Gradient Boosting model.")
             report = classification_report(y_test, y_pred, target_names=le_crime.classes_, output_dict=True)
             report_df = pd.DataFrame(report).transpose()
             st.dataframe(report_df)
+
+            st.subheader("Confusion Matrix (PCA Model)")
+            st.write(
+                "This confusion matrix shows the performance of the Gradient Boosting model after applying PCA for dimensionality reduction.")
+            X_train_pca, X_test_pca, y_train_pca, y_test_pca = train_test_split(X_pca, y, test_size=0.3,
+                                                                                random_state=42)
+            gb_clf_pca.fit(X_train_pca, y_train_pca)
+            y_pred_pca = gb_clf_pca.predict(X_test_pca)
+
+            fig_conf_pca = plt.figure(figsize=(8, 6))
+            sns.heatmap(confusion_matrix(y_test_pca, y_pred_pca), annot=True, fmt='d', cmap='Greens')
+            plt.xlabel("Predicted")
+            plt.ylabel("Actual")
+            plt.title("Confusion Matrix - PCA Gradient Boosting")
+            st.pyplot(fig_conf_pca)
+
+            st.subheader("Classification Report (PCA Model)")
+            st.write(
+                "This classification report summarizes precision, recall, f1-score, and support for each crime category predicted by the PCA-based Gradient Boosting model.")
+            report_pca = classification_report(y_test_pca, y_pred_pca, target_names=le_crime.classes_, output_dict=True)
+            report_pca_df = pd.DataFrame(report_pca).transpose()
+            st.dataframe(report_pca_df)
