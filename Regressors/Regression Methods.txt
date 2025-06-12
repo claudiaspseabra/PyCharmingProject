@@ -1,10 +1,12 @@
-Linear Regression
-Ridge
-Lasso
-Support Vector Machine (SVM)
-KNN Regressor
-Neural Networks Regressor
-Ensemble Methods
-Decision Trees Regressor
-Random Forest Regressor
-Gradient Boosting Regressor
+REGRESSION METHODS
+
+    Linear Regression
+    Ridge
+    Lasso
+    Support Vector Machine (SVM)
+    KNN Regressor
+    Neural Networks Regressor
+    Ensemble Methods
+    Decision Trees Regressor
+    Random Forest Regressor
+    Gradient Boosting Regressor

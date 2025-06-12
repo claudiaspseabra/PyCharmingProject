@@ -1,11 +1,11 @@
-Logistic Regression
-Ridge Classifier
-Lasso Classifier
-Naive Bayes Classifier
-SVC
-KNN Classifier
-Neural Networks Classifier
-Ensemble Methods
-Decision Trees Classifier
-Random Forest Classifier
-Gradient Boosting Classifier
+CLASSIFICATION METHODS
+
+    Logistic Regression
+    Naive Bayes Classifier
+    SVC
+    KNN Classifier
+    Neural Networks Classifier
+    Ensemble Methods
+    Decision Trees Classifier
+    Random Forest Classifier
+    Gradient Boosting Classifier
