@@ -5,7 +5,6 @@ CLASSIFICATION METHODS
     SVC
     KNN Classifier
     Neural Networks Classifier
-    Ensemble Methods
     Decision Trees Classifier
     Random Forest Classifier
     Gradient Boosting Classifier

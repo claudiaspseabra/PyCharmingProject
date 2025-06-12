@@ -67,7 +67,7 @@ plt.ylabel("Predicted number of victims")
 plt.title("SVM Regression - Victim Prediction")
 plt.show()
 
-# PCA + SVR
+# =============== PCA ===============
 
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)

@@ -1,12 +1,10 @@
 REGRESSION METHODS
 
     Linear Regression
-    Ridge
-    Lasso
+    Ridge and Lasso
     Support Vector Machine (SVM)
     KNN Regressor
     Neural Networks Regressor
-    Ensemble Methods
     Decision Trees Regressor
     Random Forest Regressor
     Gradient Boosting Regressor

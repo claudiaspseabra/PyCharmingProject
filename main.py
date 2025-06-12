@@ -10,6 +10,13 @@ import seaborn as sns
 import io
 from fpdf import FPDF
 
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+import time
+from sklearn.decomposition import PCA
+
 # Wide or centered?
 st.set_page_config(layout="centered", page_title="Crime Data Analysis", page_icon="📊")
 
@@ -69,7 +76,7 @@ crime = load_data()
 st.sidebar.title("Navigation")
 selected_analysis = st.sidebar.radio(
     "Choose an analysis:",
-    ["DataSet Description", "Advanced Feature Engineering", "Statistical Analysis", "Graphical Analysis"]
+    ["DataSet Description", "Advanced Feature Engineering", "Statistical Analysis", "Graphical Analysis", "Prediction"]
 )
 
 if crime is not None:
@@ -788,3 +795,104 @@ if crime is not None:
 
                     with open(pdf_path, "rb") as f:
                         st.download_button("Download PDF", f, file_name="crime_report.pdf", mime="application/pdf")
+
+    elif selected_analysis == "Prediction":
+        st.header("5. Crime Type Prediction")
+        st.write("cute description using gradient boosting blablabla")
+
+        df_pred = crime[["Start_Date_Time",
+                         "End_Date_Time",
+                         "Dispatch Date / Time",
+                         "Crime Name1",
+                         "Police District Name"]].dropna()
+        df_pred["response_time"] = (df_pred["Dispatch Date / Time"] - df_pred["Start_Date_Time"]).dt.total_seconds()
+        df_pred["crime_duration"] = (df_pred["End_Date_Time"] - df_pred["Start_Date_Time"]).dt.total_seconds()
+        df_pred["Hour"] = df_pred["Start_Date_Time"].dt.hour
+        df_pred["Year"] = df_pred["Start_Date_Time"].dt.year
+
+        top_crimes = df_pred["Crime Name1"].value_counts().nlargest(10).index
+        df_pred = df_pred[df_pred["Crime Name1"].isin(top_crimes)].sample(n=10000, random_state=42)
+
+        le_crime = LabelEncoder()
+        le_district = LabelEncoder()
+        df_pred["Crime_Label"] = le_crime.fit_transform(df_pred["Crime Name1"])
+        df_pred["District_Code"] = le_district.fit_transform(df_pred["Police District Name"])
+
+        X = df_pred[["response_time", "crime_duration", "Hour", "Year", "District_Code"]]
+        y = df_pred["Crime_Label"]
+
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        gb_clf = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+        gb_clf.fit(X_scaled, y)
+
+        if "prediction_result" not in st.session_state:
+            st.session_state.prediction_result = None
+        if "show_evaluation" not in st.session_state:
+            st.session_state.show_evaluation = False
+
+        with st.form("prediction_form"):
+            st.subheader("Occurrence details:")
+
+            response_time_min = st.number_input("Police response time (minutes)", min_value=0.0)
+            crime_duration_min = st.number_input("Crime duration (minutes)", min_value=0.0)
+            hour_input = st.number_input("Hour of the day (0-23)", min_value=0, max_value=23)
+            year_input = st.number_input("Year", min_value=2016, max_value=2020)
+            district_input = st.selectbox("Police district", options=list(le_district.classes_))
+
+            submitted = st.form_submit_button("Predict Type of Crime")
+
+        if submitted:
+            try:
+                response_time_input = response_time_min * 60
+                crime_duration_input = crime_duration_min * 60
+                district_code = le_district.transform([district_input])[0]
+
+                user_data = pd.DataFrame([{
+                    "response_time": response_time_input,
+                    "crime_duration": crime_duration_input,
+                    "Hour": hour_input,
+                    "Year": year_input,
+                    "District_Code": district_code
+                }])
+
+                user_scaled = scaler.transform(user_data)
+                prediction = gb_clf.predict(user_scaled)[0]
+                prediction_proba = gb_clf.predict_proba(user_scaled)[0]
+
+                crime_name = le_crime.inverse_transform([prediction])[0]
+                confidence = round(100 * prediction_proba[prediction], 2)
+
+                st.session_state.prediction_result = (crime_name, confidence)
+                st.session_state.show_evaluation = False  # Reset avaliação
+
+            except Exception as e:
+                st.error(f"Error: {e}")
+                st.session_state.prediction_result = None
+
+        if st.session_state.prediction_result:
+            crime_name, confidence = st.session_state.prediction_result
+            st.success(f"Type of crime predicted: **{crime_name}**")
+            st.info(f"Accuracy: **{confidence}%**")
+
+            if st.button("Show model evaluation"):
+                st.session_state.show_evaluation = True
+
+        if st.session_state.show_evaluation:
+            st.subheader("Confusion Matrix")
+            X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+            gb_clf.fit(X_train, y_train)
+            y_pred = gb_clf.predict(X_test)
+
+            fig_conf = plt.figure(figsize=(8, 6))
+            sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
+            plt.xlabel("Predicted")
+            plt.ylabel("Actual")
+            plt.title("Confusion Matrix - Gradient Boosting")
+            st.pyplot(fig_conf)
+
+            st.subheader("Classification Report")
+            report = classification_report(y_test, y_pred, target_names=le_crime.classes_, output_dict=True)
+            report_df = pd.DataFrame(report).transpose()
+            st.dataframe(report_df)

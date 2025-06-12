@@ -110,6 +110,8 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.show()
 
+# sem PCA
+
 # MLP MULTI LAYER PCA
 mlp_multi_pca = MLPClassifier(hidden_layer_sizes=(100, 50), max_iter=300, random_state=42)
 start = time.time()

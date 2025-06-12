@@ -61,7 +61,8 @@ plot_tree(dt_reg, feature_names=X.columns, filled=True, max_depth=3)
 plt.title("Decision Tree Regression (Partial Tree View)")
 plt.show()
 
-# PCA + Decision Tree
+# =============== PCA ===============
+
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)
 print(f"\nPCA: Reduced from {X_scaled.shape[1]} to {X_pca.shape[1]} components")

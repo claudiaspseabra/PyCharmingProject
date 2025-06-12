@@ -51,7 +51,7 @@ print("Training time:", end - start)
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print(classification_report(y_test, y_pred))
 
-# PCA
+# =============== PCA ===============
 
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)

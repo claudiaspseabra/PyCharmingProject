@@ -59,7 +59,7 @@ disp.plot()
 plt.title("Confusion Matrix (Naive Bayes)")
 plt.show()
 
-# PCA
+# =============== PCA ===============
 
 pca = PCA(n_components=0.95, svd_solver='full')
 X_pca = pca.fit_transform(X_scaled)
